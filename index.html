@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oakland 2027: 7:30 pace, still getting stronger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E6ECEF; --panel:#F6F8F9; --ink:#1E2A33; --muted:#586874;
+  --bay:#1F5F7A; --bay-soft:#CFE0E8; --oak:#4F6B3A; --oak-soft:#DCE6D2;
+  --amber:#B8761F; --amber-soft:#F2E3CB; --line:#C3CFD6; --red:#A33B2B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131B21; --panel:#1B252D; --ink:#E4EAEE; --muted:#9AAAB5;
+    --bay:#6FB1CF; --bay-soft:#1E3642; --oak:#9CBD7F; --oak-soft:#26331E;
+    --amber:#E0A552; --amber-soft:#3A2D1A; --line:#2F3D47; --red:#E07A68;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131B21; --panel:#1B252D; --ink:#E4EAEE; --muted:#9AAAB5;
+  --bay:#6FB1CF; --bay-soft:#1E3642; --oak:#9CBD7F; --oak-soft:#26331E;
+  --amber:#E0A552; --amber-soft:#3A2D1A; --line:#2F3D47; --red:#E07A68;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",sans-serif;line-height:1.05;margin:0}
+h2{font-size:2.1rem;font-weight:700;margin-bottom:.4rem}
+h3{font-size:1.35rem;font-weight:600;margin:1.2rem 0 .3rem}
+p{margin:.4rem 0 .8rem;max-width:72ch}
+a{color:var(--bay)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{padding:40px 0 10px}
+.goal{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 28px}
+.goal h1{font-size:clamp(4rem,14vw,8.5rem);font-weight:700;letter-spacing:-.02em;color:var(--bay)}
+.goal h1 small{font-size:.28em;color:var(--ink);font-weight:600;letter-spacing:0;display:block}
+.goal .sub{font-size:1.05rem;color:var(--muted);max-width:44ch;padding-bottom:18px}
+.profile{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 14px 6px;margin:18px 0 8px}
+.profile svg{width:100%;height:auto;display:block}
+.profile .cap{font-size:.85rem;color:var(--muted);margin:4px 2px 6px}
+.phase-key{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:0 2px 8px}
+.phase-key span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+section{padding:34px 0;border-top:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.85rem}
+.weeknav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+.weeknav button{font:600 1rem "Public Sans",sans-serif;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:6px 14px;cursor:pointer}
+.weeknav button:hover{border-color:var(--bay)}
+.weektitle{font-family:"Barlow Condensed",sans-serif;font-size:1.9rem;font-weight:700}
+.weekmeta{color:var(--muted);font-size:.95rem}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+@media (max-width:900px){.days{grid-template-columns:1fr}}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;min-height:150px;display:flex;flex-direction:column;gap:6px}
+.day .dn{font-weight:700;font-size:.9rem}
+.day .dd{color:var(--muted);font-size:.8rem;font-weight:400}
+.blk{border-left:4px solid var(--c);background:var(--s);padding:6px 8px;border-radius:3px;font-size:.86rem;line-height:1.4}
+.blk b{display:block;font-size:.9rem}
+.run{--c:var(--bay);--s:var(--bay-soft)}
+.lift{--c:var(--oak);--s:var(--oak-soft)}
+.test{--c:var(--amber);--s:var(--amber-soft)}
+.rest{color:var(--muted);font-size:.86rem}
+.done{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-top:auto}
+.note{background:var(--amber-soft);border-left:4px solid var(--amber);padding:10px 14px;border-radius:3px;margin:12px 0;max-width:80ch}
+.spec{font-style:italic;color:var(--muted)}
+.people li,.refs li{margin-bottom:.6rem;max-width:80ch}
+.refs{font-size:.9rem}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--bay-soft);color:var(--bay);margin-left:4px}
+footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:no-preference){.sel{transition:opacity .15s}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="goal">
+    <h1><small>Oakland Marathon, Sun Mar 21, 2027</small>7:30</h1>
+    <p class="sub">Per-mile goal pace = 3:16:39. Watch-target 7:25 because the course reads long. A 26-week build, Sept 21 to race day, with lifting that keeps progressing.</p>
+  </div>
+  <div class="profile">
+    <div class="phase-key">
+      <span style="--c:var(--bay-soft)">Base (wk 1–8)</span>
+      <span style="--c:var(--bay)">Build (wk 9–21)</span>
+      <span style="--c:var(--oak)">Peak (wk 22–23)</span>
+      <span style="--c:var(--amber)">Taper and race (wk 24–26)</span>
+    </div>
+    <svg id="profile" viewBox="0 0 1000 250" role="img" aria-label="Weekly running mileage across 26 weeks, peaking at 42 miles in week 23"></svg>
+    <p class="cap">Weekly miles, drawn like a course profile. Select a week to open it below. Dips are planned down weeks.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="week">
+  <h2>Week by week</h2>
+  <div class="weeknav">
+    <button id="prev" aria-label="Previous week">Previous</button>
+    <button id="next" aria-label="Next week">Next</button>
+    <button id="today">This week</button>
+  </div>
+  <div class="weektitle" id="wt"></div>
+  <div class="weekmeta" id="wm"></div>
+  <div class="days" id="days" style="margin-top:12px"></div>
+  <p class="cap" style="color:var(--muted);font-size:.85rem;margin-top:8px">Checkmarks save in this browser only.</p>
+</section>
+
+<section id="paces">
+  <div class="grid2">
+    <div>
+      <h2>Paces</h2>
+      <p>Anchored to a 3:16 marathon (VDOT about 48, from Daniels' tables, interpolated). Re-set them after each checkpoint.</p>
+      <table>
+        <tr><th>Type</th><th>Pace /mi</th><th>Feel</th></tr>
+        <tr><td>Easy</td><td>8:45–9:30</td><td>Full sentences. About 80% of all miles.</td></tr>
+        <tr><td>Marathon pace (MP)</td><td>7:25–7:30</td><td>Controlled, rhythmic</td></tr>
+        <tr><td>Threshold / tempo</td><td>~7:05</td><td>Comfortably hard, a few words at a time</td></tr>
+        <tr><td>Hill repeats</td><td>By effort</td><td>Hard but repeatable. Walk down.</td></tr>
+        <tr><td>Strides</td><td>Fast, relaxed</td><td>6 × 20 s, full recovery</td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>Checkpoints</h2>
+      <p>These tests decide your race-day target. Don't pick it now.</p>
+      <table>
+        <tr><th>When</th><th>Test</th><th>On track</th><th>If slower</th></tr>
+        <tr><td>Wk 2</td><td>5K, flat</td><td>≤ 23:00</td><td>&gt; 24:30: target 7:45–8:00</td></tr>
+        <tr><td>Wk 12</td><td>10K</td><td>≤ 45:00</td><td>&gt; 47:00: target 7:45</td></tr>
+        <tr><td>Wk 18</td><td>Half</td><td>≤ 1:33</td><td>&gt; 1:37: target 7:45</td></tr>
+      </table>
+      <p class="spec">Speculative: a sub-1:28 half in week 18 would justify trying 7:00–7:10.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lifting">
+  <h2>Lifting: build muscle, protect the tendon</h2>
+  <p>Running doesn't have to cost you muscle. A 43-study meta-analysis found concurrent training didn't significantly reduce hypertrophy or maximal-strength gains; the cost was explosive strength, mostly when both were done in the same session (Schumann et al., 2022). So the goal here is real hypertrophy everywhere except the quads, which are capped by the patellar tendon, not by the running.</p>
+
+  <h3>The three levers</h3>
+  <p><b>Volume.</b> More weekly sets per muscle means more growth, with diminishing returns: the newest dose-response meta-regression estimates about 0.24% extra hypertrophy per set around 12 sets/week (Pelland et al., 2026). Targets below sit at 12–20 sets for upper-body muscles.</p>
+  <p><b>Frequency.</b> Training each muscle at least twice a week beats once a week for hypertrophy (Schoenfeld et al., 2016). Every upper-body muscle and the posterior chain is hit twice below.</p>
+  <p><b>Effort.</b> Upper-body isolation work goes to 0–1 reps in reserve (RIR), compounds 1–3 RIR. Leg work stays at 2–3 RIR to protect running quality and the tendon.</p>
+
+  <h3>Weekly sets per muscle</h3>
+  <div class="scroll"><table>
+    <tr><th>Muscle</th><th>Base and build (wk 1–21)</th><th>Peak (wk 22–23)</th><th>Taper (wk 24–25)</th><th>Where</th></tr>
+    <tr><td>Chest</td><td>14–16</td><td>10–12</td><td>6</td><td>Upper A, Upper B</td></tr>
+    <tr><td>Back (lats + upper back)</td><td>16–20</td><td>12–14</td><td>8</td><td>Upper A, B, C</td></tr>
+    <tr><td>Side and rear delts</td><td>12–16</td><td>10–12</td><td>6</td><td>Upper A, B, C</td></tr>
+    <tr><td>Biceps, triceps</td><td>10–14 each</td><td>8–10</td><td>4–6</td><td>Upper B, C</td></tr>
+    <tr><td>Hamstrings, glutes</td><td>8–10 each</td><td>6</td><td>3–4</td><td>Mon posterior, Wed lower</td></tr>
+    <tr><td>Quads</td><td>6–9 (incl. BFR)</td><td>4–6</td><td>3</td><td>Wed lower only</td></tr>
+    <tr><td>Calves (soleus bias)</td><td>8–10</td><td>6</td><td>3–4</td><td>Mon, Wed</td></tr>
+  </table></div>
+
+  <h3>Why the quads are handled differently</h3>
+  <p>Heavy slow resistance is a first-line treatment for patellar tendinopathy, so heavy squats stay, with a slow tempo. But tendon collagen shows net breakdown for 24–36 h after hard loading and net synthesis at 36–72 h, so quads get one heavy day a week. Extra quad volume comes from blood-flow-restriction (BFR) leg extensions: light loads, high metabolic stress, low tendon force. BFR also ranked near the top of a recent network meta-analysis of patellar tendinopathy exercise, though that ranking wasn't a statistically significant difference.</p>
+  <div class="note"><b>Tendon check, every morning:</b> single-leg decline squat, rate pain 0–10. Pain up to about 3–5/10 during loading is fine if it's back to baseline next morning and not climbing week to week. If it's 2+ points above your baseline, swap the next run for a bike ride and drop a set from the next leg day.</div>
+
+  <h3>Frequency by phase</h3>
+  <div class="scroll"><table>
+    <tr><th>Phase</th><th>Lifts/wk</th><th>Split</th></tr>
+    <tr><td>Base and build, wk 1–21</td><td>4</td><td>Mon Upper A + posterior, Wed PM Lower, Thu Upper B, Fri Upper C</td></tr>
+    <tr><td>Peak, wk 22–23</td><td>4 (shorter)</td><td>Same days, about 70% of sets, same loads</td></tr>
+    <tr><td>Taper, wk 24–25</td><td>3</td><td>Mon, Wed (wk 24 only), Thu at about 50% of sets</td></tr>
+    <tr><td>Race week</td><td>1</td><td>Light upper on Monday</td></tr>
+  </table></div>
+
+  <h3>Sessions</h3>
+  <div class="grid2">
+    <div>
+      <p><b>Mon: Upper A + posterior chain</b></p>
+      <table>
+        <tr><td>Bench press</td><td>4 × 4–6, 1–2 RIR</td></tr>
+        <tr><td>Weighted pull-up</td><td>4 × 5–8</td></tr>
+        <tr><td>Overhead press</td><td>3 × 6–8</td></tr>
+        <tr><td>Romanian deadlift</td><td>3 × 6–8, 2–3 RIR</td></tr>
+        <tr><td>Hip thrust</td><td>3 × 8–10</td></tr>
+        <tr><td>Seated leg curl</td><td>3 × 10–12</td></tr>
+        <tr><td>Lateral raise</td><td>3 × 12–20, 0–1 RIR</td></tr>
+      </table>
+      <p><b>Wed PM: Lower</b> (6+ h after the key run)</p>
+      <table>
+        <tr><td>Back squat, 3 s down / 3 s up</td><td>4 × 4–6, 2–3 RIR</td></tr>
+        <tr><td>Bulgarian split squat, slow</td><td>3 × 6–8/leg</td></tr>
+        <tr><td>BFR leg extension, ~30% 1RM</td><td>30-15-15-15, 30 s rest</td></tr>
+        <tr><td>Nordic curl or lying leg curl</td><td>3 × 5–8</td></tr>
+        <tr><td>Bent-knee calf raise, heavy</td><td>4 × 8–12</td></tr>
+        <tr><td>Standing calf raise</td><td>2 × 10–15</td></tr>
+      </table>
+    </div>
+    <div>
+      <p><b>Thu: Upper B</b></p>
+      <table>
+        <tr><td>Incline DB press</td><td>4 × 8–10</td></tr>
+        <tr><td>Chest-supported row</td><td>4 × 8–10</td></tr>
+        <tr><td>Half-kneeling 1-arm cable lat pulldown</td><td>3 × 10–12</td></tr>
+        <tr><td>Weighted dip</td><td>3 × 8–10</td></tr>
+        <tr><td>Rear delt fly</td><td>3 × 15–20</td></tr>
+        <tr><td>EZ-bar curl</td><td>3 × 8–12</td></tr>
+        <tr><td>Overhead cable triceps extension</td><td>3 × 10–15</td></tr>
+      </table>
+      <p><b>Fri: Upper C</b> (after the easy run)</p>
+      <table>
+        <tr><td>Machine or DB chest press</td><td>3 × 10–12</td></tr>
+        <tr><td>Wide-grip cable row</td><td>3 × 10–12</td></tr>
+        <tr><td>Cable lateral raise</td><td>4 × 12–20</td></tr>
+        <tr><td>Incline DB curl</td><td>3 × 10–15</td></tr>
+        <tr><td>Triceps pushdown</td><td>3 × 10–15</td></tr>
+        <tr><td>External rotation + face pull</td><td>2 × 15</td></tr>
+      </table>
+    </div>
+  </div>
+  <p><b>Progression:</b> double progression. Hit the top of the rep range at the target RIR, then add load. Cut sets by a third on run down weeks (4, 8, 15, 21).</p>
+  <p><b>Fueling the muscle:</b> each mile run costs roughly 100–130 kcal at your size, so a 30-mile week needs about 3,000–4,000 extra kcal/week just to stand still. Stay at maintenance or a small surplus from week 13 on, and keep protein around 1.6–2.2 g/kg/day. Muscle can't grow at peak mileage in a deficit, and a deficit raises bone-stress risk. <span class="spec">Speculative: expect clear gains in upper body, arms, glutes and calves; quad size roughly maintained until after the race.</span></p>
+</section>
+
+<section id="course">
+  <h2>Training for this course</h2>
+  <div class="grid2">
+    <div>
+      <p><b>Miles 3–6.</b> Runners describe short but very steep hills here. Hill repeats in weeks 3–10 cover this. On race day, run 7:35–7:45 through this stretch.</p>
+      <p><b>Miles 11–20, Bay Bridge.</b> An out-and-back to Yerba Buena Island on a steady grade that a cyclist put at about 5%. From week 13, do 1.5–2 mi sustained climbs at 4–6%. Hold effort, and accept 7:45–8:00 uphill.</p>
+      <p><b>Traffic noise.</b> Several reviewers found the loud traffic on the bridge path draining. Do a few long runs next to busy roads so it isn't new on race day.</p>
+    </div>
+    <div>
+      <p><b>Downhill off the bridge.</b> This is heavy eccentric load. Add controlled downhill finishes on weeks 16–23 long runs only if the next-morning tendon check stays at baseline. Build the distance slowly.</p>
+      <p><b>3rd Street, late.</b> One reviewer called the end a long up-and-down slog. The MP finishes in weeks 22–23 rehearse this.</p>
+      <p><b>Distance.</b> One runner's watch read 0.3 mi short against the course, and the last three mile markers were missing. Pace by effort.</p>
+      <p><b>Weather.</b> Race-day mean is about 56°F, average high 62°F. Pace groups are offered.</p>
+    </div>
+  </div>
+</section>
+
+<section id="fuel">
+  <h2>Fueling and recovery</h2>
+  <div class="grid2">
+    <div>
+      <p><b>During the race:</b> 60–90 g carbohydrate per hour. Glucose-only products cap absorption around 60 g/h; a 2:1 glucose:fructose blend lets you go higher. For 3:16, that's about 200–290 g total.</p>
+      <p><b>Gut training:</b> start at 40–50 g/h on long runs in week 13, and reach race dose by week 19. Studies of repeated 90 g/h exposure found reduced GI symptoms, but results across the literature are mixed. Use your race-day products.</p>
+      <p>A 2025 study reported average marathoners take in only about 21.7 g/h. That's a common way to hit the wall.</p>
+    </div>
+    <div>
+      <p><b>Daily:</b> keep protein around 1.6–2.2 g/kg. Finish any cut by week 12; weeks 13–25 should be at maintenance or above.</p>
+      <p><b>Why no deficit at peak:</b> the IOC's 2023 REDs consensus describes low energy availability as a spectrum, from mild and transient to problematic. Prolonged exposure harms bone health and performance, and it affects men as well as women.</p>
+      <p><b>Carb load:</b> 2 days out, roughly 8–10 g/kg/day of carbohydrate. Practice the load before the week 18 half.</p>
+    </div>
+  </div>
+</section>
+
+<section id="rules">
+  <h2>Rules that override the table</h2>
+  <p><b>Progression.</b> In a cohort of 874 novice runners, those who increased weekly distance by more than 30% over two weeks were more vulnerable to distance-related injuries (patellofemoral pain, IT band syndrome, shin splints) than those who increased by less than 10%. This plan stays under that threshold relative to the last non-down week.</p>
+  <p><b>Pain.</b> Pain that changes your gait, bone pain you can point to with one finger, or Achilles pain that worsens during a run: stop and take 3 days off running. Cross-train instead. If it isn't clearly better, see a sports medicine clinician.</p>
+  <p><b>Intensity.</b> Recreational marathoners tend to train pyramidally: most work easy, some moderate, a little hard. A 2026 randomized trial comparing polarized and pyramidal training in recreational marathoners found different adaptations but comparable race outcomes. This plan is pyramidal, with tempo work early and MP work late.</p>
+  <p><b>Patellar tendon.</b> Heavy leg work is never the night before a run. Wednesday legs are followed by no run on Thursday, giving roughly 36–40 h before Friday's easy run and 4 days before the long run. Plyometrics are out until you've had 4+ symptom-stable weeks. Rising week-over-week pain, night pain, or pain above 3–4/10 on easy runs means see a sports physiotherapist.</p>
+  <p><b>Missed week.</b> Repeat the previous week instead of jumping ahead.</p>
+</section>
+
+<section id="people">
+  <h2>What people who've done it report</h2>
+  <ul class="people">
+    <li><b>Brett Williams</b> (Men's Health) trained for the 2022 NYC Marathon while chasing a 500 lb deadlift. His goal was 3:05; he ran 3:23:30 and spent three months rehabbing a hamstring. He calls it the "volume trap." This is why leg volume drops here.</li>
+    <li><b>Nick Bare</b> is proof the ceiling is high: a 2:39 marathon and a 700 lb deadlift, built over more than a decade.</li>
+    <li><b>Jeremy Miller</b> (on Zach Bitter's podcast) ran a 2:44 at Chicago and, later that year, a sub-5 mile and a 500 lb deadlift on the same day.</li>
+    <li><b>Sam Loch</b>, an Olympic rower and powerlifter, is chasing a 300 kg deadlift and a sub-3 marathon at the same time. His one previous marathon was a 3:14.</li>
+    <li><b>A Hansons reviewer</b> with half-Ironman experience wouldn't attempt the beginner plan's jump from about 12 to 31.5 mi/week in a month. That's why this base phase is gradual.</li>
+    <li><b>First-time Higdon users</b> on Substack reported an 18-week plan worked, one noting she used smaller jumps between long runs.</li>
+    <li><b>A forum lifter-runner</b> found runs felt like only 80–90% effort the day after squats and deadlifts, and moved to a full day off legs after leg day.</li>
+    <li><b>Oakland runners</b> on RaceRaves say it isn't flat, and describe steep early hills, a draining bridge, and the 3rd Street grind.</li>
+  </ul>
+</section>
+
+<section id="refs">
+  <h2>Sources</h2>
+  <ol class="refs">
+    <li>Schumann M, Feuerbacher JF, Sünkeler M, Freitag N, Rønnestad BR, Doma K, Lundberg TR. Compatibility of concurrent aerobic and strength training for skeletal muscle size and function: an updated systematic review and meta-analysis. <i>Sports Med</i> 2022;52(3):601–612. <a href="https://doi.org/10.1007/s40279-021-01587-7">doi:10.1007/s40279-021-01587-7</a></li>
+    <li>Lundberg TR, Feuerbacher JF, Sünkeler M, Schumann M. The effects of concurrent aerobic and strength training on muscle fiber hypertrophy. <i>Sports Med</i> 2022;52(10):2391–2403. <a href="https://doi.org/10.1007/s40279-022-01688-x">doi:10.1007/s40279-022-01688-x</a></li>
+    <li>Effect of strength training programs in middle- and long-distance runners' economy at different running speeds: a systematic review with meta-analysis. <i>Sports Med</i> 2024. <a href="https://doi.org/10.1007/s40279-023-01978-y">doi:10.1007/s40279-023-01978-y</a></li>
+    <li>The effect of strength training methods on middle-distance and long-distance runners' athletic performance: a systematic review with meta-analysis. <i>Sports Med</i> 2024. <a href="https://doi.org/10.1007/s40279-024-02018-z">doi:10.1007/s40279-024-02018-z</a></li>
+    <li>Blagrove RC, Howatson G, Hayes PR. Effects of strength training on the physiological determinants of middle- and long-distance running performance. <i>Sports Med</i> 2018;48:1117–1149. <a href="https://doi.org/10.1007/s40279-017-0835-7">doi:10.1007/s40279-017-0835-7</a></li>
+    <li>Nielsen RO et al. Excessive progression in weekly running distance and risk of running-related injuries. <i>J Orthop Sports Phys Ther</i> 2014;44(10):739–747. <a href="https://doi.org/10.2519/jospt.2014.5164">doi:10.2519/jospt.2014.5164</a></li>
+    <li>Esteve-Lanao J, Casado A, et al. Polarized vs pyramidal training intensity distribution in recreational marathoners: a randomized controlled study. 2026. <a href="https://journals.sagepub.com/doi/10.1177/17479541261468168">doi:10.1177/17479541261468168</a></li>
+    <li>Training intensity distribution, load management, and performance in recreational long-distance runners. 2026. <a href="https://pubmed.ncbi.nlm.nih.gov/41765005/">PubMed 41765005</a></li>
+    <li>Filipas L et al. Effects of 16 weeks of pyramidal and polarized training intensity distributions in well-trained endurance runners. <i>Scand J Med Sci Sports</i> 2022. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9299127/">PMC9299127</a></li>
+    <li>Mountjoy M et al. 2023 IOC consensus statement on Relative Energy Deficiency in Sport (REDs). <i>Br J Sports Med</i> 2023;57:1073–1097. <a href="https://doi.org/10.1136/bjsports-2023-106994">doi:10.1136/bjsports-2023-106994</a></li>
+    <li>Jeukendrup A. A step towards personalized sports nutrition: carbohydrate intake during exercise. <i>Sports Med</i> 2014;44(Suppl 1):S25–S33. <a href="https://doi.org/10.1007/s40279-014-0148-z">doi:10.1007/s40279-014-0148-z</a></li>
+    <li>Viribay A et al. Effects of 120 g/h of carbohydrates intake during a mountain marathon on exercise-induced muscle damage in elite runners. <i>Nutrients</i> 2020;12(5):1367. <a href="https://doi.org/10.3390/nu12051367">doi:10.3390/nu12051367</a></li>
+    <li>Morton RW et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. <i>Br J Sports Med</i> 2018;52:376–384. <a href="https://doi.org/10.1136/bjsports-2017-097608">doi:10.1136/bjsports-2017-097608</a></li>
+    <li>Schoenfeld BJ, Ogborn D, Krieger JW. Dose-response relationship between weekly resistance training volume and increases in muscle mass. <i>J Sports Sci</i> 2017;35(11):1073–1082. <a href="https://doi.org/10.1080/02640414.2016.1210197">doi:10.1080/02640414.2016.1210197</a></li>
+    <li>Schoenfeld BJ, Ogborn D, Krieger JW. Effects of resistance training frequency on measures of muscle hypertrophy. <i>Sports Med</i> 2016;46(11):1689–1697. <a href="https://doi.org/10.1007/s40279-016-0543-8">doi:10.1007/s40279-016-0543-8</a></li>
+    <li>Pelland JC et al. The resistance training dose response: meta-regressions exploring weekly volume and frequency. <i>Sports Med</i> 2026;56(2):481–505. <a href="https://doi.org/10.1007/s40279-025-02344-w">doi:10.1007/s40279-025-02344-w</a></li>
+    <li>Breda SJ et al. Effectiveness of progressive tendon-loading exercise therapy in patients with patellar tendinopathy: a randomised clinical trial. <i>Br J Sports Med</i> 2021;55:501–509. <a href="https://doi.org/10.1136/bjsports-2020-103403">doi:10.1136/bjsports-2020-103403</a></li>
+    <li>Kongsgaard M et al. Corticosteroid injections, eccentric decline squat training and heavy slow resistance training in patellar tendinopathy. <i>Scand J Med Sci Sports</i> 2009. <a href="https://www.researchgate.net/publication/26859852">ResearchGate</a></li>
+    <li>Malliaras P et al. Patellar tendinopathy: clinical diagnosis, load management, and advice for challenging case presentations. <i>J Orthop Sports Phys Ther</i> 2015. <a href="https://doi.org/10.2519/jospt.2015.5987">doi:10.2519/jospt.2015.5987</a></li>
+    <li>Load management in tendinopathy: clinical progression for Achilles and patellar tendinopathy. <i>Apunts Sports Med</i> 2018. <a href="https://www.apunts.org/en-load-management-in-tendinopathy-clinical-articulo-S1886658117300580">apunts.org</a></li>
+    <li>Silbernagel KG et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. <i>Am J Sports Med</i> 2007. <a href="https://doi.org/10.1177/0363546506298279">doi:10.1177/0363546506298279</a></li>
+    <li>Comparative effectiveness of exercise interventions for patellar tendinopathy: network meta-analysis. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13308153/">PMC13308153</a></li>
+    <li>Challoumas D et al. Management of patellar tendinopathy: a systematic review and network meta-analysis of randomised studies. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8634001/">PMC8634001</a></li>
+    <li>Course and reviews: <a href="https://oaklandmarathon.com/races/marathon/">oaklandmarathon.com</a>, <a href="https://raceraves.com/races/oakland-marathon/">RaceRaves</a>, <a href="https://findmymarathon.com/race-detail.php?zname=Oakland+Marathon">FindMyMarathon</a>, <a href="https://www.ahotu.com/event/oakland-marathon">Ahotu</a></li>
+    <li>People: <a href="https://www.aol.com/lifestyle/hybrid-athlete-craze-everywhere-future-183000668.html">Brett Williams, Men's Health</a>, <a href="https://johngetstrong.substack.com/p/how-nick-bare-conquered-hyrox">Nick Bare profile</a>, <a href="https://zachbitter.substack.com/p/rise-of-the-hybrid-athlete">Zach Bitter on Jeremy Miller</a>, <a href="https://samloch.substack.com/p/inception">Sam Loch</a>, <a href="https://www.goodreads.com/book/show/42848199">Hansons First Marathon review</a>, <a href="https://runninglifestyle.substack.com/p/run-club-tourism-and-mrc-reno-marathon/comments">Running Lifestyle comments</a>, <a href="https://forums.anandtech.com/threads/training-for-a-marathon-while-keeping-up-with-lifting.2239974/post-33305683">AnandTech forum</a></li>
+  </ol>
+</section>
+</main>
+
+<footer class="wrap">Pace equivalents are approximations from Daniels' VDOT tables. Items marked in italics are speculative.</footer>
+
+<script>
+const START = new Date(2026, 8, 21); // Mon Sep 21 2026
+// [miles, long run, key session, phase]
+const W = [
+ [10,4,"Easy + 6 strides","base"],
+ [11,5,"5K time trial (flat)","base"],
+ [12,5,"6 × 30 s steep hill","base"],
+ [10,4,"Down week: easy + strides","base"],
+ [13,6,"8 × 30 s hill","base"],
+ [15,7,"6 × 60 s hill","base"],
+ [17,8,"8 × 60 s hill","base"],
+ [14,6,"Down week: easy + strides","base"],
+ [18,9,"3 mi steady at 7:40","build"],
+ [20,10,"5 × 2 min hill","build"],
+ [22,11,"4 mi tempo at 7:05","build"],
+ [18,8,"10K time trial","build"],
+ [24,12,"2 × 1.5 mi sustained climb","build"],
+ [26,13,"5 mi tempo at 7:05","build"],
+ [21,10,"Down week: easy + strides","build"],
+ [28,14,"2 × 2 mi climb","build"],
+ [30,15,"6 mi tempo at 7:05","build"],
+ [24,13.1,"Easy + strides (half on Sun)","build"],
+ [32,16,"3 × 2 mi at MP","build"],
+ [34,17,"3 × 2 mi climb","build"],
+ [27,12,"Down week: easy + strides","build"],
+ [38,18,"7 mi tempo; long run ends 6 at MP","peak"],
+ [42,20,"4 × 2 mi at MP","peak"],
+ [32,14,"5 mi at MP","taper"],
+ [24,10,"3 mi at MP","taper"],
+ [9,26.2,"4 mi with 2 at MP","taper"]
+];
+const PHASE_COLOR = {base:"var(--bay-soft)",build:"var(--bay)",peak:"var(--oak)",taper:"var(--amber)"};
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const LIFT = {
+  base:{Mon:"Upper A + posterior chain",Wed:"Lower: slow-tempo squat, BFR extensions (PM, 6+ h after run)",Thu:"Upper B",Fri:"Upper C"},
+  build:{Mon:"Upper A + posterior chain",Wed:"Lower: slow-tempo squat, BFR extensions (PM, 6+ h after run)",Thu:"Upper B",Fri:"Upper C"},
+  peak:{Mon:"Upper A + posterior (~70% sets)",Wed:"Lower (~70% sets, hold loads)",Thu:"Upper B (~70% sets)",Fri:"Upper C (short)"},
+  taper:{Mon:"Upper A (~50% sets)",Wed:"Lower light (~50% sets)",Thu:"Upper B (~50% sets)"}
+};
+const r5 = x => Math.round(x*2)/2;
+function weekPlan(i){
+  const [mi,lr,key,ph] = W[i];
+  const n = i+1, plan = {};
+  if(n===26){
+    plan.Mon={lift:"Light upper only"};
+    plan.Tue={run:"4 mi: 2 easy + 2 at MP"};
+    plan.Thu={run:"3 mi easy + 4 strides"};
+    plan.Sat={run:"2 mi shakeout"};
+    plan.Sun={run:"Race: 26.2 mi", test:true};
+    return plan;
+  }
+  const rem = mi - lr;
+  let split;
+  if(n<=4) split = {Tue:.5, Fri:.5};
+  else if(n<=8) split = {Tue:.3, Wed:.4, Sat:.3};
+  else split = {Tue:.2, Wed:.3, Fri:.2, Sat:.3};
+  const keyDay = n<=4 ? "Fri" : "Wed";
+  for(const d in split){
+    const m = r5(rem*split[d]);
+    if(d===keyDay) plan[d] = {run:`${m} mi incl. ${key}`, test:/time trial/.test(key)};
+    else plan[d] = {run:`${m} mi easy${d==="Tue"?" + strides":""}`};
+  }
+  if(n===18) plan.Sun = {run:"Half marathon test (13.1)", test:true};
+  else if(n===22) plan.Sun = {run:`${lr} mi long, last 6 at MP`};
+  else plan.Sun = {run:`${lr} mi long${n>=13?", practice fueling":""}${n>=16&&n<=23?", finish on a controlled downhill":""}`};
+  let L = {...LIFT[ph]};
+  if(n===25) delete L.Wed;
+  if([4,8,15,21].includes(n)) for(const d in L) L[d] = L[d]+" (deload: −⅓ sets)";
+  for(const d in L){ plan[d] = plan[d]||{}; plan[d].lift = L[d]; }
+  return plan;
+}
+function fmt(d){return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+function store(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
+
+let cur = 0;
+function render(){
+  const [mi,lr,key,ph] = W[cur];
+  const s = new Date(START); s.setDate(s.getDate()+cur*7);
+  document.getElementById("wt").textContent = `Week ${cur+1} of 26, ${fmt(s)}`;
+  const phName = {base:"Base",build:"Build",peak:"Peak",taper:cur===25?"Race week":"Taper"}[ph];
+  document.getElementById("wm").textContent = `${phName}. ${cur===25?"9 mi + race":mi+" mi"}. Long run ${lr} mi. Key: ${key}.`;
+  const plan = weekPlan(cur), box = document.getElementById("days");
+  box.innerHTML = "";
+  DAYS.forEach((d,j)=>{
+    const dt = new Date(s); dt.setDate(dt.getDate()+j);
+    const p = plan[d]||{};
+    const el = document.createElement("div"); el.className="day";
+    let h = `<div class="dn">${d} <span class="dd">${fmt(dt)}</span></div>`;
+    if(p.run) h += `<div class="blk ${p.test?"test":"run"}"><b>Run</b>${p.run}</div>`;
+    if(p.lift) h += `<div class="blk lift"><b>Lift</b>${p.lift}</div>`;
+    if(!p.run && !p.lift) h += `<div class="rest">Rest. Mobility or a walk.</div>`;
+    const id = `oak-w${cur+1}-${d}`;
+    if(p.run||p.lift) h += `<label class="done"><input type="checkbox" data-k="${id}" ${store(id)==="1"?"checked":""}> Done</label>`;
+    el.innerHTML = h; box.appendChild(el);
+  });
+  box.querySelectorAll("input[type=checkbox]").forEach(c=>c.addEventListener("change",()=>store(c.dataset.k,c.checked?"1":"0")));
+  document.querySelectorAll("#profile .pt").forEach((p,k)=>p.setAttribute("r",k===cur?7:3.5));
+  store("oak-week",String(cur));
+}
+
+// profile chart
+(function(){
+  const svg = document.getElementById("profile"), NS="http://www.w3.org/2000/svg";
+  const x0=48,x1=985,y0=210,y1=20,max=45;
+  const X=i=>x0+(x1-x0)*i/25, Y=v=>y0-(y0-y1)*v/max;
+  const vals = W.map((w,i)=>i===25?w[0]+26.2:w[0]);
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e};
+  [0,10,20,30,40].forEach(v=>{mk("line",{x1:x0,x2:x1,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1});const t=mk("text",{x:x0-8,y:Y(v)+4,"text-anchor":"end","font-size":12,fill:"var(--muted)"});t.textContent=v;});
+  const yl=mk("text",{x:12,y:115,"font-size":12,fill:"var(--muted)",transform:"rotate(-90 12 115)","text-anchor":"middle"});yl.textContent="Miles / week";
+  for(let i=0;i<25;i++){
+    const ph=W[i][3];
+    mk("path",{d:`M${X(i)},${y0} L${X(i)},${Y(vals[i])} L${X(i+1)},${Y(vals[i+1])} L${X(i+1)},${y0} Z`,fill:PHASE_COLOR[ph],opacity:.85});
+  }
+  mk("polyline",{points:vals.map((v,i)=>`${X(i)},${Y(v)}`).join(" "),fill:"none",stroke:"var(--ink)","stroke-width":2});
+  vals.forEach((v,i)=>{
+    const c=mk("circle",{class:"pt",cx:X(i),cy:Y(v),r:3.5,fill:"var(--panel)",stroke:"var(--ink)","stroke-width":2,tabindex:0,role:"button","aria-label":`Week ${i+1}, ${v} miles`});
+    c.style.cursor="pointer";
+    const go=()=>{cur=i;render();document.getElementById("week").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})};
+    c.addEventListener("click",go);c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+    if(i%2===0||i===25){const t=mk("text",{x:X(i),y:y0+18,"text-anchor":"middle","font-size":11,fill:"var(--muted)"});t.textContent=i+1;}
+  });
+  const pk=mk("text",{x:X(22),y:Y(42)-12,"text-anchor":"middle","font-size":13,"font-weight":600,fill:"var(--ink)"});pk.textContent="42 mi, 20 mi long run";
+  const rc=mk("text",{x:X(25)-4,y:Y(35.2)-12,"text-anchor":"end","font-size":13,"font-weight":600,fill:"var(--ink)"});rc.textContent="Race";
+  const xl=mk("text",{x:(x0+x1)/2,y:244,"text-anchor":"middle","font-size":12,fill:"var(--muted)"});xl.textContent="Week";
+})();
+
+function thisWeek(){const d=Math.floor((Date.now()-START)/(7*864e5));return Math.min(25,Math.max(0,d))}
+document.getElementById("prev").onclick=()=>{cur=Math.max(0,cur-1);render()};
+document.getElementById("next").onclick=()=>{cur=Math.min(25,cur+1);render()};
+document.getElementById("today").onclick=()=>{cur=thisWeek();render()};
+const saved = parseInt(store("oak-week"),10);
+cur = Number.isFinite(saved) ? saved : thisWeek();
+render();
+</script>
+</body>
+</html>
