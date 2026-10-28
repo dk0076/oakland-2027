@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Oakland 2027</title>
+<title>Oakland 2027: 7:30 pace, still getting stronger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -75,6 +75,20 @@ th{font-weight:600;color:var(--muted);font-size:.85rem}
 .tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--bay-soft);color:var(--bay);margin-left:4px}
 footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
 @media (prefers-reduced-motion:no-preference){.sel{transition:opacity .15s}}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.ctrls input,.ctrls select,#runs select{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px}
+.btn{font:600 .95rem "Public Sans",sans-serif;background:var(--bay);color:var(--panel);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;display:inline-block}
+.small{font-size:.85rem;color:var(--muted)}
+.statusbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 16px;font-size:.93rem}
+.statusbox .big{font-family:"Barlow Condensed",sans-serif;font-size:2.2rem;font-weight:700;color:var(--bay);line-height:1}
+.flag{color:var(--red);font-weight:600}
+.logged{font-size:.8rem;color:var(--ink);background:var(--bg);border-radius:3px;padding:4px 6px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:14px 0 0;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+.tabs button{font:600 .95rem "Public Sans",sans-serif;background:none;color:var(--muted);border:0;border-bottom:3px solid transparent;padding:8px 12px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--bay);border-bottom-color:var(--bay)}
+.tabs button:hover{color:var(--ink)}
+section[data-tab]{display:none}
+section[data-tab].on{display:block;border-top:0}
 </style>
 </head>
 <body>
@@ -91,13 +105,44 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
       <span style="--c:var(--amber)">Taper and race (wk 24–26)</span>
     </div>
     <svg id="profile" viewBox="0 0 1000 250" role="img" aria-label="Weekly running mileage across 26 weeks, peaking at 42 miles in week 23"></svg>
-    <p class="cap">Weekly miles, drawn like a course profile. Select a week to open it below. Dips are planned down weeks.</p>
+    <p class="cap">Weekly miles, drawn like a course profile; dots show what you actually ran. Select a week to open it below.</p>
   </div>
 </header>
 
 <main class="wrap">
+<nav class="tabs" role="tablist" aria-label="Sections"><button role="tab" data-go="weeks" aria-selected="false">Weeks</button><button role="tab" data-go="log" aria-selected="false">Log</button><button role="tab" data-go="paces" aria-selected="false">Paces &amp; HR</button><button role="tab" data-go="lifting" aria-selected="false">Lifting</button><button role="tab" data-go="warmup" aria-selected="false">Warm-up</button><button role="tab" data-go="course" aria-selected="false">Course &amp; fuel</button><button role="tab" data-go="rules" aria-selected="false">Rules</button><button role="tab" data-go="sources" aria-selected="false">Sources</button></nav>
 
-<section id="week">
+
+<section id="log" data-tab="log">
+  <h2>Log and recalibrate</h2>
+  <p>Weekly: export runs from Garmin Connect (web: Activities → All Activities → Export CSV) and upload here. Duplicates are ignored. Log both morning checks daily: single-leg decline squat for the knee, first-step pain for the foot.</p>
+  <div class="grid2">
+    <div>
+      <div class="ctrls">
+        <label class="btn">Upload Garmin CSV<input type="file" id="csv" accept=".csv,text/csv" hidden></label>
+        <label>Units <select id="units"><option value="mi">miles</option><option value="km">km</option></select></label>
+      </div>
+      <div class="ctrls">
+        <label>Morning check <input type="date" id="pdate"></label>
+        <label>Knee 0–10 <input type="number" id="pval" min="0" max="10" step="1" style="width:4.5em"></label>
+        <label>First-step foot 0–10 <input type="number" id="fval" min="0" max="10" step="1" style="width:4.5em"></label>
+        <button class="btn" id="psave">Save</button>
+      </div>
+      <p class="small" id="pinfo"></p>
+      <div class="ctrls">
+        <button class="btn" id="exp">Export for Claude check-in</button>
+        <label class="btn">Restore backup<input type="file" id="imp" accept=".json" hidden></label>
+      </div>
+      <p class="small" id="msg" role="status"></p>
+    </div>
+    <div id="status" class="statusbox"></div>
+  </div>
+  <h3>Recent runs</h3>
+  <p class="small">Types are auto-guessed. Mark checkpoint runs as <b>Test</b>: tests reset your fitness estimate.</p>
+  <div class="scroll"><table id="runs"></table></div>
+</section>
+
+<section id="week" data-tab="weeks">
   <h2>Week by week</h2>
   <div class="weeknav">
     <button id="prev" aria-label="Previous week">Previous</button>
@@ -107,29 +152,33 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   <div class="weektitle" id="wt"></div>
   <div class="weekmeta" id="wm"></div>
   <div class="days" id="days" style="margin-top:12px"></div>
-  <p class="cap" style="color:var(--muted);font-size:.85rem;margin-top:8px">Checkmarks save in this browser only.</p>
+  <p class="small" style="margin-top:8px">Days with a logged run check themselves off. Everything saves on this device only; use Export as a backup.</p>
 </section>
 
-<section id="paces">
+<section id="paces" data-tab="paces">
   <div class="grid2">
     <div>
       <h2>Paces</h2>
-      <p>Anchored to a 3:16 marathon (VDOT about 48, from Daniels' tables, interpolated). Re-set them after each checkpoint.</p>
+      <p id="pacesrc">Recalculated from your logged data.</p>
+      <table id="pacetab"></table>
+      <p class="spec" id="equiv"></p>
+      <h3>Heart rate</h3>
+      <p>Max 205, LTHR 184, resting 56. Garmin's default zone 2 (60-70% max) is 123-143, too low for easy running. Set the watch to %LTHR or enter these in BPM.</p>
       <table>
-        <tr><th>Type</th><th>Pace /mi</th><th>Feel</th></tr>
-        <tr><td>Easy</td><td>8:45–9:30</td><td>Full sentences. About 80% of all miles.</td></tr>
-        <tr><td>Marathon pace (MP)</td><td>7:25–7:30</td><td>Controlled, rhythmic</td></tr>
-        <tr><td>Threshold / tempo</td><td>~7:05</td><td>Comfortably hard, a few words at a time</td></tr>
-        <tr><td>Hill repeats</td><td>By effort</td><td>Hard but repeatable. Walk down.</td></tr>
-        <tr><td>Strides</td><td>Fast, relaxed</td><td>6 × 20 s, full recovery</td></tr>
+        <tr><th>Purpose</th><th>BPM</th><th>When</th></tr>
+        <tr><td>Easy</td><td>under 160</td><td>80% of miles. Walk the hills if it creeps.</td></tr>
+        <tr><td>Steady / MP</td><td>160–178</td><td>Marathon-pace segments</td></tr>
+        <tr><td>Threshold</td><td>178–188</td><td>Tempo work, around LTHR</td></tr>
+        <tr><td>Intervals</td><td>188+</td><td>Hill reps</td></tr>
       </table>
+      <p class="small">LTHR 184 is Garmin's auto-detected estimate, not a lab value. If 20 minutes at 178–188 is impossible, it is set too high. The talk test wins over any number: full sentences on easy runs.</p>
     </div>
     <div>
       <h2>Checkpoints</h2>
       <p>These tests decide your race-day target. Don't pick it now.</p>
       <table>
         <tr><th>When</th><th>Test</th><th>On track</th><th>If slower</th></tr>
-        <tr><td>Wk 2</td><td>5K, flat</td><td>≤ 23:00</td><td>&gt; 24:30: target 7:45–8:00</td></tr>
+        <tr><td>Wk 4</td><td>5K, flat</td><td>≤ 23:00</td><td>&gt; 24:30: target 7:45–8:00</td></tr>
         <tr><td>Wk 12</td><td>10K</td><td>≤ 45:00</td><td>&gt; 47:00: target 7:45</td></tr>
         <tr><td>Wk 18</td><td>Half</td><td>≤ 1:33</td><td>&gt; 1:37: target 7:45</td></tr>
       </table>
@@ -138,14 +187,14 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   </div>
 </section>
 
-<section id="lifting">
+<section id="lifting" data-tab="lifting">
   <h2>Lifting: build muscle, protect the tendon</h2>
-  <p>Running doesn't have to cost you muscle. A 43-study meta-analysis found concurrent training didn't significantly reduce hypertrophy or maximal-strength gains; the cost was explosive strength, mostly when both were done in the same session (Schumann et al., 2022). So the goal here is real hypertrophy everywhere except the quads, which are capped by the patellar tendon, not by the running.</p>
+  <p>A 43-study meta-analysis found concurrent training didn't significantly reduce hypertrophy or max strength; the cost was explosive strength, mostly when both were done in one session (Schumann et al., 2022). So: real hypertrophy everywhere except the quads, which the tendon caps, not the running.</p>
 
   <h3>The three levers</h3>
-  <p><b>Volume.</b> More weekly sets per muscle means more growth, with diminishing returns: the newest dose-response meta-regression estimates about 0.24% extra hypertrophy per set around 12 sets/week (Pelland et al., 2026). Targets below sit at 12–20 sets for upper-body muscles.</p>
-  <p><b>Frequency.</b> Training each muscle at least twice a week beats once a week for hypertrophy (Schoenfeld et al., 2016). Every upper-body muscle and the posterior chain is hit twice below.</p>
-  <p><b>Effort.</b> Upper-body isolation work goes to 0–1 reps in reserve (RIR), compounds 1–3 RIR. Leg work stays at 2–3 RIR to protect running quality and the tendon.</p>
+  <p><b>Volume.</b> More sets means more growth with diminishing returns: about 0.24% extra hypertrophy per set around 12 sets/week (Pelland et al., 2026). Upper-body targets below sit at 12-20.</p>
+  <p><b>Frequency.</b> Twice a week per muscle beats once (Schoenfeld et al., 2016). Everything below is hit twice.</p>
+  <p><b>Effort.</b> Upper isolation 0-1 reps in reserve (RIR), compounds 1-3. Legs stay at 2-3 to protect running and the tendon.</p>
 
   <h3>Weekly sets per muscle</h3>
   <div class="scroll"><table>
@@ -160,7 +209,7 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   </table></div>
 
   <h3>Why the quads are handled differently</h3>
-  <p>Heavy slow resistance is a first-line treatment for patellar tendinopathy, so heavy squats stay, with a slow tempo. But tendon collagen shows net breakdown for 24–36 h after hard loading and net synthesis at 36–72 h, so quads get one heavy day a week. Extra quad volume comes from blood-flow-restriction (BFR) leg extensions: light loads, high metabolic stress, low tendon force. BFR also ranked near the top of a recent network meta-analysis of patellar tendinopathy exercise, though that ranking wasn't a statistically significant difference.</p>
+  <p>Heavy slow resistance is first-line for patellar tendinopathy, so heavy squats stay, slow. But tendon collagen shows net breakdown for 24-36 h after hard loading and synthesis at 36-72 h, so quads get one heavy day. Extra quad volume comes from blood-flow-restriction (BFR) leg extensions: light load, low tendon force. BFR ranked near the top of a patellar tendinopathy network meta-analysis, though not significantly so.</p>
   <div class="note"><b>Tendon check, every morning:</b> single-leg decline squat, rate pain 0–10. Pain up to about 3–5/10 during loading is fine if it's back to baseline next morning and not climbing week to week. If it's 2+ points above your baseline, swap the next run for a bike ride and drop a set from the next leg day.</div>
 
   <h3>Frequency by phase</h3>
@@ -172,56 +221,91 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
     <tr><td>Race week</td><td>1</td><td>Light upper on Monday</td></tr>
   </table></div>
 
-  <h3>Sessions</h3>
+  <h3>Sessions, weeks 1-15</h3>
+  <p>Rotate within a slot every 4-6 weeks or when a joint complains; different exercises for the same muscle grow it about equally. Keep the squat and weighted pull-up fixed, since those progress on load.</p>
   <div class="grid2">
     <div>
-      <p><b>Mon: Upper A + posterior chain</b></p>
+      <p><b>Mon: push + vertical pull + posterior</b></p>
       <table>
-        <tr><td>Bench press</td><td>4 × 4–6, 1–2 RIR</td></tr>
-        <tr><td>Weighted pull-up</td><td>4 × 5–8</td></tr>
-        <tr><td>Overhead press</td><td>3 × 6–8</td></tr>
-        <tr><td>Romanian deadlift</td><td>3 × 6–8, 2–3 RIR</td></tr>
-        <tr><td>Hip thrust</td><td>3 × 8–10</td></tr>
-        <tr><td>Seated leg curl</td><td>3 × 10–12</td></tr>
-        <tr><td>Lateral raise</td><td>3 × 12–20, 0–1 RIR</td></tr>
+        <tr><td>Incline DB press</td><td>4 x 6-8</td></tr>
+        <tr><td>Weighted pull-up</td><td>4 x 5</td></tr>
+        <tr><td>RDL</td><td>3 x 6-8</td></tr>
+        <tr><td>Hamstring curl</td><td>3 x 10-12</td></tr>
+        <tr><td>Shoulder press (DB or barbell)</td><td>3 x 6-8</td></tr>
+        <tr><td>Plantar heel raise (towel under toes)</td><td>3 x 8-12/leg</td></tr>
       </table>
-      <p><b>Wed PM: Lower</b> (6+ h after the key run)</p>
+      <p><b>Wed PM: squat + horizontal pull</b> (6+ h after the key run). Squat leads: strength gains are largest in whichever exercise starts the session, while order does not affect hypertrophy (Nunes et al., 2021).</p>
       <table>
-        <tr><td>Back squat, 3 s down / 3 s up</td><td>4 × 4–6, 2–3 RIR</td></tr>
-        <tr><td>Bulgarian split squat, slow</td><td>3 × 6–8/leg</td></tr>
-        <tr><td>BFR leg extension, ~30% 1RM</td><td>30-15-15-15, 30 s rest</td></tr>
-        <tr><td>Nordic curl or lying leg curl</td><td>3 × 5–8</td></tr>
-        <tr><td>Bent-knee calf raise, heavy</td><td>4 × 8–12</td></tr>
-        <tr><td>Standing calf raise</td><td>2 × 10–15</td></tr>
+        <tr><td>Back squat, 3 s down / 3 s up</td><td>4 x 4-6, 2-3 RIR</td></tr>
+        <tr><td>Chest-supported row</td><td>4 x 8-10</td></tr>
+        <tr><td>Flat DB press</td><td>3 x 8-10</td></tr>
+        <tr><td>BFR leg extension, ~30% 1RM</td><td>30-15-15-15</td></tr>
+        <tr><td>Lateral raise</td><td>3 x 12-20</td></tr>
+        <tr><td>Plantar heel raise</td><td>3 x 8-12/leg</td></tr>
       </table>
     </div>
     <div>
-      <p><b>Thu: Upper B</b></p>
+      <p><b>Thu: pull + arms</b></p>
       <table>
-        <tr><td>Incline DB press</td><td>4 × 8–10</td></tr>
-        <tr><td>Chest-supported row</td><td>4 × 8–10</td></tr>
-        <tr><td>Half-kneeling 1-arm cable lat pulldown</td><td>3 × 10–12</td></tr>
-        <tr><td>Weighted dip</td><td>3 × 8–10</td></tr>
-        <tr><td>Rear delt fly</td><td>3 × 15–20</td></tr>
-        <tr><td>EZ-bar curl</td><td>3 × 8–12</td></tr>
-        <tr><td>Overhead cable triceps extension</td><td>3 × 10–15</td></tr>
+        <tr><td>Half-kneeling 1-arm cable lat pulldown</td><td>4 x 10-12</td></tr>
+        <tr><td>Dip (upright torso, controlled depth)</td><td>3 x 8-10</td></tr>
+        <tr><td>Rear delt cable</td><td>3 x 15-20</td></tr>
+        <tr><td>Incline bench curl</td><td>3 x 8-12</td></tr>
+        <tr><td>Overhead triceps extension</td><td>3 x 10-15</td></tr>
       </table>
-      <p><b>Fri: Upper C</b> (after the easy run)</p>
+      <p><b>Fri: pump</b> (after the easy run)</p>
       <table>
-        <tr><td>Machine or DB chest press</td><td>3 × 10–12</td></tr>
-        <tr><td>Wide-grip cable row</td><td>3 × 10–12</td></tr>
-        <tr><td>Cable lateral raise</td><td>4 × 12–20</td></tr>
-        <tr><td>Incline DB curl</td><td>3 × 10–15</td></tr>
-        <tr><td>Triceps pushdown</td><td>3 × 10–15</td></tr>
-        <tr><td>External rotation + face pull</td><td>2 × 15</td></tr>
+        <tr><td>Flys</td><td>3 x 12-15</td></tr>
+        <tr><td>Wide-grip cable row</td><td>3 x 10-12</td></tr>
+        <tr><td>Lateral raise</td><td>5 x 12-20</td></tr>
+        <tr><td>Hammer curl</td><td>3 x 10-15</td></tr>
+        <tr><td>Single-arm pushdown</td><td>3 x 12-15</td></tr>
       </table>
+      <div class="note"><b>Leg rules:</b> squats only Wednesday, RDL and hamstring curl only Monday. No leg work Thursday, Friday or the weekend. Slow tempo on squats for the tendon.</div>
+      <div class="note"><b>Plantar fascia, weeks 1–8:</b> do the heel raise <b>every second day</b>, so a third session at home on top of Mon and Wed. Forefoot on a step, toes on a rolled towel and maximally dorsiflexed, 3 s up, 2 s pause, 3 s down, single leg. Wk 1–2: 3 × 12 bodyweight. Wk 3–4: 4 × 10 loaded. Wk 5+: 5 × 8 heavier. From week 9, twice a week; go back to every second day at the first sign of a flare. In a randomized trial this beat stretching by 29 points on the Foot Function Index at 3 months (95% CI 6–52, p = 0.016), though the groups were level at 6 and 12 months (Rathleff et al., 2015).</div>
     </div>
   </div>
+  <h3>Weeks 16 onward</h3>
+  <p><b>Wk 16-21, three days.</b> Friday drops; its work moves: Monday adds lateral raise 2 x 15-20, Thursday adds hammer curl 2 x 10-15 and single-arm pushdown 2 x 12-15. Week 16 is where the long run reaches 14 mi and weekly mileage clears 28, which is where a fourth session starts costing more than it returns.</p>
+  <p><b>Wk 22-23, peak.</b> Same three days at about 70% of sets, same loads. Cut isolation sets first.</p>
+  <p><b>Wk 24-25, taper.</b> Monday and Thursday at roughly 50% of sets, loads unchanged. Week 24 keeps a light Wednesday (squat 3 x 5 at about 80%, heel raises). Week 25 has no leg work.</p>
+  <p><b>Race week.</b> Light upper Monday only: incline DB press 2 x 8, pull-up 2 x 5, lateral raise 2 x 15.</p>
+  <div class="note"><b>Drop to three days early</b> if easy-run HR drifts up at the same pace for two straight weeks, or if the knee or foot flags twice in a month. The evidence for strength work helping runners covers 2-3 sessions a week; the fourth is for you, not for the marathon.</div>
   <p><b>Progression:</b> double progression. Hit the top of the rep range at the target RIR, then add load. Cut sets by a third on run down weeks (4, 8, 15, 21).</p>
   <p><b>Fueling the muscle:</b> each mile run costs roughly 100–130 kcal at your size, so a 30-mile week needs about 3,000–4,000 extra kcal/week just to stand still. Stay at maintenance or a small surplus from week 13 on, and keep protein around 1.6–2.2 g/kg/day. Muscle can't grow at peak mileage in a deficit, and a deficit raises bone-stress risk. <span class="spec">Speculative: expect clear gains in upper body, arms, glutes and calves; quad size roughly maintained until after the race.</span></p>
 </section>
 
-<section id="course">
+<section id="warmup" data-tab="warmup">
+  <h2>Warm-up and after the run</h2>
+  <p>Static stretching in a warm-up has minimal injury-prevention effect, but the "never static stretch" rule is overstated: a 2024 meta-analysis found no harm to jumping, sprinting or throwing when it sits inside a dynamic warm-up. Dynamic warm-ups have modest support, with 7-10 min improving explosive lower-limb performance. In a small crossover study (n=8), running plus 5 min of either stretching type improved running economy versus running alone. Your injury insurance is the mileage caps and the strength work, not this routine.</p>
+  <div class="grid2">
+    <div>
+      <h3>Pre-run, 5-8 min</h3>
+      <table>
+        <tr><td>Easy jog or brisk walk</td><td>3-5 min</td></tr>
+        <tr><td>Leg swings, front-back and side-side</td><td>10 each</td></tr>
+        <tr><td>Walking lunges</td><td>10</td></tr>
+        <tr><td>Ankle circles + calf raises</td><td>15</td></tr>
+        <tr><td>Strides, key sessions and long runs only</td><td>4 x 20 s</td></tr>
+      </table>
+      <p class="small">No strides before easy runs; they are prep for quality work.</p>
+    </div>
+    <div>
+      <h3>Post-run, 5-8 min</h3>
+      <table>
+        <tr><td>Calf, straight-leg and bent-knee</td><td>30 s each side</td></tr>
+        <tr><td>Hamstring</td><td>30 s each</td></tr>
+        <tr><td>Hip flexor lunge</td><td>30 s each</td></tr>
+        <tr><td>Quad</td><td>30 s each</td></tr>
+        <tr><td>Glute figure-4</td><td>30 s each</td></tr>
+      </table>
+      <p class="small">Hold 60 s or less per muscle. Longer impairs performance, which matters on lifting days.</p>
+    </div>
+  </div>
+  <div class="note"><b>Two specific to your tissues.</b> <b>Plantar fascia:</b> before you stand up in the morning, pull the toes back into dorsiflexion, 10 s x 10. It targets the first-step pain directly. <b>Patellar tendon:</b> skip aggressive quad stretching when the knee is grumpy, since deep knee flexion under stretch loads the tendon. Warm it with 15 bodyweight squats to about 60 degrees instead.</div>
+</section>
+
+<section id="course" data-tab="course">
   <h2>Training for this course</h2>
   <div class="grid2">
     <div>
@@ -238,7 +322,7 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   </div>
 </section>
 
-<section id="fuel">
+<section id="fuel" data-tab="course">
   <h2>Fueling and recovery</h2>
   <div class="grid2">
     <div>
@@ -254,16 +338,18 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   </div>
 </section>
 
-<section id="rules">
+<section id="rules" data-tab="rules">
   <h2>Rules that override the table</h2>
   <p><b>Progression.</b> In a cohort of 874 novice runners, those who increased weekly distance by more than 30% over two weeks were more vulnerable to distance-related injuries (patellofemoral pain, IT band syndrome, shin splints) than those who increased by less than 10%. This plan stays under that threshold relative to the last non-down week.</p>
   <p><b>Pain.</b> Pain that changes your gait, bone pain you can point to with one finger, or Achilles pain that worsens during a run: stop and take 3 days off running. Cross-train instead. If it isn't clearly better, see a sports medicine clinician.</p>
   <p><b>Intensity.</b> Recreational marathoners tend to train pyramidally: most work easy, some moderate, a little hard. A 2026 randomized trial comparing polarized and pyramidal training in recreational marathoners found different adaptations but comparable race outcomes. This plan is pyramidal, with tempo work early and MP work late.</p>
   <p><b>Patellar tendon.</b> Heavy leg work is never the night before a run. Wednesday legs are followed by no run on Thursday, giving roughly 36–40 h before Friday's easy run and 4 days before the long run. Plyometrics are out until you've had 4+ symptom-stable weeks. Rising week-over-week pain, night pain, or pain above 3–4/10 on easy runs means see a sports physiotherapist.</p>
+  <p><b>Plantar fascia.</b> First-step morning pain is the early warning and moves before running pain does. Two mornings at 3+/10 holds mileage flat for the week and takes out hills and speed work. Keep loading the heel raises at or below 5/10, settling by the next morning.</p>
+  <p><b>Going out Saturday.</b> Swap that week: long run Saturday morning, easy run Sunday. Never the long run the morning after. In weeks 16-23 that swap leaves only about 60 h between squats and the long run, so cut Wednesday&rsquo;s squat to 3 sets in those weeks.</p>
   <p><b>Missed week.</b> Repeat the previous week instead of jumping ahead.</p>
 </section>
 
-<section id="people">
+<section id="people" data-tab="sources">
   <h2>What people who've done it report</h2>
   <ul class="people">
     <li><b>Brett Williams</b> (Men's Health) trained for the 2022 NYC Marathon while chasing a 500 lb deadlift. His goal was 3:05; he ran 3:23:30 and spent three months rehabbing a hamstring. He calls it the "volume trap." This is why leg volume drops here.</li>
@@ -277,7 +363,7 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
   </ul>
 </section>
 
-<section id="refs">
+<section id="refs" data-tab="sources">
   <h2>Sources</h2>
   <ol class="refs">
     <li>Schumann M, Feuerbacher JF, Sünkeler M, Freitag N, Rønnestad BR, Doma K, Lundberg TR. Compatibility of concurrent aerobic and strength training for skeletal muscle size and function: an updated systematic review and meta-analysis. <i>Sports Med</i> 2022;52(3):601–612. <a href="https://doi.org/10.1007/s40279-021-01587-7">doi:10.1007/s40279-021-01587-7</a></li>
@@ -303,6 +389,11 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
     <li>Silbernagel KG et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. <i>Am J Sports Med</i> 2007. <a href="https://doi.org/10.1177/0363546506298279">doi:10.1177/0363546506298279</a></li>
     <li>Comparative effectiveness of exercise interventions for patellar tendinopathy: network meta-analysis. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13308153/">PMC13308153</a></li>
     <li>Challoumas D et al. Management of patellar tendinopathy: a systematic review and network meta-analysis of randomised studies. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8634001/">PMC8634001</a></li>
+    <li>Rathleff MS et al. High-load strength training improves outcome in patients with plantar fasciitis: a randomised controlled trial with 12-month follow-up. <i>Scand J Med Sci Sports</i> 2015;25(3):e292–300. <a href="https://doi.org/10.1111/sms.12313">doi:10.1111/sms.12313</a></li>
+    <li>Nunes JP et al. What influence does resistance exercise order have on muscular strength gains and muscle hypertrophy? <i>Eur J Sport Sci</i> 2021;21(2):149–157. <a href="https://doi.org/10.1080/17461391.2020.1733672">doi:10.1080/17461391.2020.1733672</a></li>
+    <li>Dynamic warm-ups play pivotal role in athletic performance and injury prevention. <i>Arthrosc Sports Med Rehabil</i> 2024. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12034053/">PMC12034053</a></li>
+    <li>Revisiting the stretch-induced force deficit: a systematic review with multilevel meta-analysis of acute effects. <i>J Sport Health Sci</i> 2024. <a href="https://www.sciencedirect.com/science/article/pii/S2095254624000693">ScienceDirect</a></li>
+    <li>The effect of static and dynamic stretching during warm-up on running economy and perception of effort in recreational endurance runners. 2021. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8391672/">PMC8391672</a></li>
     <li>Course and reviews: <a href="https://oaklandmarathon.com/races/marathon/">oaklandmarathon.com</a>, <a href="https://raceraves.com/races/oakland-marathon/">RaceRaves</a>, <a href="https://findmymarathon.com/race-detail.php?zname=Oakland+Marathon">FindMyMarathon</a>, <a href="https://www.ahotu.com/event/oakland-marathon">Ahotu</a></li>
     <li>People: <a href="https://www.aol.com/lifestyle/hybrid-athlete-craze-everywhere-future-183000668.html">Brett Williams, Men's Health</a>, <a href="https://johngetstrong.substack.com/p/how-nick-bare-conquered-hyrox">Nick Bare profile</a>, <a href="https://zachbitter.substack.com/p/rise-of-the-hybrid-athlete">Zach Bitter on Jeremy Miller</a>, <a href="https://samloch.substack.com/p/inception">Sam Loch</a>, <a href="https://www.goodreads.com/book/show/42848199">Hansons First Marathon review</a>, <a href="https://runninglifestyle.substack.com/p/run-club-tourism-and-mrc-reno-marathon/comments">Running Lifestyle comments</a>, <a href="https://forums.anandtech.com/threads/training-for-a-marathon-while-keeping-up-with-lifting.2239974/post-33305683">AnandTech forum</a></li>
   </ol>
@@ -312,138 +403,269 @@ footer{padding:30px 0 60px;color:var(--muted);font-size:.85rem}
 <footer class="wrap">Pace equivalents are approximations from Daniels' VDOT tables. Items marked in italics are speculative.</footer>
 
 <script>
-const START = new Date(2026, 8, 21); // Mon Sep 21 2026
-// [miles, long run, key session, phase]
+const START = new Date(2026, 8, 21);
 const W = [
- [10,4,"Easy + 6 strides","base"],
- [11,5,"5K time trial (flat)","base"],
- [12,5,"6 × 30 s steep hill","base"],
- [10,4,"Down week: easy + strides","base"],
- [13,6,"8 × 30 s hill","base"],
- [15,7,"6 × 60 s hill","base"],
- [17,8,"8 × 60 s hill","base"],
- [14,6,"Down week: easy + strides","base"],
- [18,9,"3 mi steady at 7:40","build"],
- [20,10,"5 × 2 min hill","build"],
- [22,11,"4 mi tempo at 7:05","build"],
- [18,8,"10K time trial","build"],
- [24,12,"2 × 1.5 mi sustained climb","build"],
- [26,13,"5 mi tempo at 7:05","build"],
- [21,10,"Down week: easy + strides","build"],
- [28,14,"2 × 2 mi climb","build"],
- [30,15,"6 mi tempo at 7:05","build"],
- [24,13.1,"Easy + strides (half on Sun)","build"],
- [32,16,"3 × 2 mi at MP","build"],
- [34,17,"3 × 2 mi climb","build"],
- [27,12,"Down week: easy + strides","build"],
- [38,18,"7 mi tempo; long run ends 6 at MP","peak"],
- [42,20,"4 × 2 mi at MP","peak"],
- [32,14,"5 mi at MP","taper"],
- [24,10,"3 mi at MP","taper"],
- [9,26.2,"4 mi with 2 at MP","taper"]
+ [10,4,"Easy + 6 strides","base"],[11,5,"Easy + 4 strides","base"],[12,5,"6 × 30 s steep hill","base"],[10,4,"5K time trial (flat)","base"],
+ [13,6,"8 × 30 s hill","base"],[15,7,"6 × 60 s hill","base"],[17,8,"8 × 60 s hill","base"],[14,6,"Down week: easy + strides","base"],
+ [18,9,"3 mi steady at T+35 s","build"],[20,10,"5 × 2 min hill","build"],[22,11,"4 mi tempo at T","build"],[18,8,"10K time trial","build"],
+ [24,12,"2 × 1.5 mi sustained climb","build"],[26,13,"5 mi tempo at T","build"],[21,10,"Down week: easy + strides","build"],[28,14,"2 × 2 mi climb","build"],
+ [30,15,"6 mi tempo at T","build"],[24,13.1,"Easy + strides (half on Sun)","build"],[32,16,"3 × 2 mi at MP","build"],[34,17,"3 × 2 mi climb","build"],
+ [27,12,"Down week: easy + strides","build"],[38,18,"7 mi tempo; long run ends 6 at MP","peak"],[42,20,"4 × 2 mi at MP","peak"],
+ [32,14,"5 mi at MP","taper"],[24,10,"3 mi at MP","taper"],[9,26.2,"4 mi with 2 at MP","taper"]
 ];
-const PHASE_COLOR = {base:"var(--bay-soft)",build:"var(--bay)",peak:"var(--oak)",taper:"var(--amber)"};
-const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DOWN=[3,7,14,20];
+const PHASE_COLOR={base:"var(--bay-soft)",build:"var(--bay)",peak:"var(--oak)",taper:"var(--amber)"};
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const LIFT = {
-  base:{Mon:"Upper A + posterior chain",Wed:"Lower: slow-tempo squat, BFR extensions (PM, 6+ h after run)",Thu:"Upper B",Fri:"Upper C"},
-  build:{Mon:"Upper A + posterior chain",Wed:"Lower: slow-tempo squat, BFR extensions (PM, 6+ h after run)",Thu:"Upper B",Fri:"Upper C"},
-  peak:{Mon:"Upper A + posterior (~70% sets)",Wed:"Lower (~70% sets, hold loads)",Thu:"Upper B (~70% sets)",Fri:"Upper C (short)"},
-  taper:{Mon:"Upper A (~50% sets)",Wed:"Lower light (~50% sets)",Thu:"Upper B (~50% sets)"}
+  base:{Mon:"Push + vertical pull + posterior + heel raises",Wed:"Squat + horizontal pull, BFR, heel raises (PM, 6+ h after run)",Thu:"Pull + arms",Fri:"Pump + heel raises"},
+  build:{Mon:"Push + vertical pull + posterior + heel raises",Wed:"Squat + horizontal pull, BFR, heel raises (PM, 6+ h after run)",Thu:"Pull + arms",Fri:"Pump"},
+  peak:{Mon:"Push + pull + posterior (~70% sets)",Wed:"Squat + row (~70% sets, hold loads)",Thu:"Pull + arms (~70% sets)"},
+  taper:{Mon:"Push + pull (~50% sets)",Wed:"Light squat 3 x 5, heel raises",Thu:"Pull + arms (~50% sets)"}
 };
-const r5 = x => Math.round(x*2)/2;
-function weekPlan(i){
-  const [mi,lr,key,ph] = W[i];
-  const n = i+1, plan = {};
-  if(n===26){
-    plan.Mon={lift:"Light upper only"};
-    plan.Tue={run:"4 mi: 2 easy + 2 at MP"};
-    plan.Thu={run:"3 mi easy + 4 strides"};
-    plan.Sat={run:"2 mi shakeout"};
-    plan.Sun={run:"Race: 26.2 mi", test:true};
-    return plan;
+const MI=1609.344, VDOT0=49.4, HRMAX=205, LTHR=184, HREASY=160;
+
+/* ---------- storage ---------- */
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let S=LS.get("oak-state",null)||{runs:[],pain:{},foot:{},units:"mi",done:{}};
+const save=()=>LS.set("oak-state",S);
+
+/* ---------- dates ---------- */
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseISO=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const wkOf=s=>Math.floor((parseISO(s)-START)/(7*864e5));
+const dowOf=s=>(parseISO(s).getDay()+6)%7;
+const fmt=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+const todayISO=()=>iso(new Date());
+const thisWeek=()=>Math.min(25,Math.max(0,wkOf(todayISO())));
+
+/* ---------- Daniels ---------- */
+const vo2=v=>-4.60+0.182258*v+0.000104*v*v;
+const pct=t=>0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);
+const vdotOf=(m,min)=>vo2(m/min)/pct(min);
+const velAt=o=>(-0.182258+Math.sqrt(0.182258**2+4*0.000104*(o+4.60)))/(2*0.000104);
+function raceTime(m,vd){let lo=5,hi=600;for(let i=0;i<60;i++){const mid=(lo+hi)/2;vdotOf(m,mid)>vd?lo=mid:hi=mid}return (lo+hi)/2}
+const secPerMi=v=>MI/v*60;
+const mmss=s=>{s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")};
+const med=a=>{if(!a.length)return null;const b=[...a].sort((x,y)=>x-y),n=b.length;return n%2?b[(n-1)/2]:(b[n/2-1]+b[n/2])/2};
+
+/* ---------- Garmin CSV ---------- */
+function csvRows(t){const r=[];let row=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"||c=="\r"){if(c=="\r"&&t[i+1]=="\n")i++;row.push(f);r.push(row);row=[];f=""}else f+=c}if(f||row.length){row.push(f);r.push(row)}return r.filter(x=>x.some(y=>y.trim()))}
+const num=v=>{if(v==null)return NaN;v=String(v).replace(/,/g,"").trim();return v===""||v==="--"?NaN:parseFloat(v)};
+function hms(v){if(!v||v==="--")return NaN;const p=String(v).trim().split(":").map(parseFloat);if(p.some(isNaN))return NaN;return p.length==3?p[0]*3600+p[1]*60+p[2]:p.length==2?p[0]*60+p[1]:p[0]}
+function importCSV(text){
+  const rows=csvRows(text.replace(/^\uFEFF/,""));if(rows.length<2)return "No rows found.";
+  const H=rows[0].map(h=>h.trim().toLowerCase());
+  const col=(...names)=>{for(const n of names){const i=H.indexOf(n);if(i>=0)return i}for(const n of names){const i=H.findIndex(h=>h.includes(n));if(i>=0)return i}return -1};
+  const cT=col("activity type"),cD=col("date"),cDist=col("distance"),cTime=col("moving time"),cTime2=col("time"),cTime3=col("elapsed time"),cHR=col("avg hr","average heart rate"),cMax=col("max hr"),cTitle=col("title"),cAsc=col("total ascent");
+  if(cD<0||cDist<0||(cTime<0&&cTime2<0&&cTime3<0))return "Couldn't find Date / Distance / Time columns. Is this the Activities export?";
+  let add=0,skip=0;const have=new Set(S.runs.map(r=>r.id));
+  for(const r of rows.slice(1)){
+    const type=cT>=0?r[cT]||"":"Running";if(!/run/i.test(type)){continue}
+    const dm=(r[cD]||"").match(/(\d{4})-(\d{2})-(\d{2})/);if(!dm)continue;
+    const date=`${dm[1]}-${dm[2]}-${dm[3]}`;let dist=num(r[cDist]);let sec=cTime>=0?hms(r[cTime]):NaN;if(!(sec>0)&&cTime2>=0)sec=hms(r[cTime2]);if(!(sec>0)&&cTime3>=0)sec=hms(r[cTime3]);if(!(dist>0)||!(sec>0))continue;
+    if(S.units==="km")dist=dist/1.609344;
+    const id=`${date}|${dist.toFixed(2)}|${Math.round(sec)}`;if(have.has(id)){skip++;continue}
+    S.runs.push({id,date,mi:+dist.toFixed(2),sec:Math.round(sec),hr:num(r[cHR])||null,maxhr:cMax>=0?(num(r[cMax])||null):null,asc:cAsc>=0?(num(r[cAsc])||null):null,title:cTitle>=0?r[cTitle]:"",tm:/treadmill|indoor/i.test(type),type:"auto"});have.add(id);add++;
   }
-  const rem = mi - lr;
-  let split;
-  if(n<=4) split = {Tue:.5, Fri:.5};
-  else if(n<=8) split = {Tue:.3, Wed:.4, Sat:.3};
-  else split = {Tue:.2, Wed:.3, Fri:.2, Sat:.3};
-  const keyDay = n<=4 ? "Fri" : "Wed";
-  for(const d in split){
-    const m = r5(rem*split[d]);
-    if(d===keyDay) plan[d] = {run:`${m} mi incl. ${key}`, test:/time trial/.test(key)};
-    else plan[d] = {run:`${m} mi easy${d==="Tue"?" + strides":""}`};
+  S.runs.sort((a,b)=>a.date<b.date?-1:1);save();
+  return `Added ${add} run${add==1?"":"s"}${skip?`, skipped ${skip} already logged`:""}.`;
+}
+
+/* ---------- classification ---------- */
+function typeOf(r){
+  if(r.type!=="auto")return r.type;
+  const w=wkOf(r.date);if(w<0||w>25)return r.mi>=10?"long":"easy";
+  const d=dowOf(r.date),lr=W[w][1];
+  if(r.mi>=Math.max(6,0.7*lr))return "long";
+  if(d===(w<4?4:2))return "key";
+  return "easy";
+}
+
+/* ---------- fitness model ---------- */
+function fitness(){
+  const tests=S.runs.filter(r=>typeOf(r)==="test"&&!r.tm&&r.mi>=1.5).map(r=>({...r,v:vdotOf(r.mi*MI,r.sec/60)}));
+  let vd=VDOT0,src="Goal-based starting estimate (no test logged yet).",anchor=null;
+  if(tests.length){const t=tests[tests.length-1];vd=t.v;anchor=t.date;src=`From your ${t.mi.toFixed(1)} mi test on ${fmt(parseISO(t.date))} (${mmss(t.sec)}).`}
+  const easy=S.runs.filter(r=>typeOf(r)==="easy"&&!r.tm&&r.hr>90&&r.mi>=2).map(r=>({d:r.date,ef:(r.mi*MI/(r.sec/60))/r.hr}));
+  const today=parseISO(todayISO()),days=d=>(today-parseISO(d))/864e5;
+  const recent=easy.filter(e=>days(e.d)<=21).map(e=>e.ef);
+  let ref;if(anchor){const a=parseISO(anchor);ref=easy.filter(e=>Math.abs((parseISO(e.d)-a)/864e5)<=14).map(e=>e.ef)}else ref=easy.filter(e=>days(e.d)>21&&days(e.d)<=49).map(e=>e.ef);
+  let efNote="Need 3+ easy runs with HR in each window to read the HR trend.",adj=0;
+  if(recent.length>=3&&ref.length>=3){const ratio=med(recent)/med(ref);efNote=`Easy-run efficiency (speed per heartbeat) is ${ratio>=1?"+":""}${((ratio-1)*100).toFixed(1)}% vs ${anchor?"your last test":"3–7 weeks ago"}.`;if(Math.abs(ratio-1)>0.015){adj=Math.max(-0.02,Math.min(0.02,(ratio-1)*0.5));vd*=1+adj;efNote+=` Paces nudged ${adj>0?"faster":"slower"} ${Math.abs(adj*100).toFixed(1)}%.`}else efNote+=" Within noise, no change."}
+  const last10=easy.filter(e=>days(e.d)<=10).map(e=>e.ef),prev=easy.filter(e=>days(e.d)>10&&days(e.d)<=31).map(e=>e.ef);
+  const fatigue=last10.length>=2&&prev.length>=3&&med(last10)/med(prev)<0.97;
+  return {vd,src,efNote,fatigue};
+}
+function paces(vd){
+  const mt=raceTime(42195,vd)*60;
+  return {E:[secPerMi(velAt(0.67*vd)),secPerMi(velAt(0.60*vd))],T:secPerMi(velAt(0.88*vd)),MPeq:mt/26.2188,MP:mt/26.2188*1.02,mt,
+    k5:raceTime(5000,vd)*60,k10:raceTime(10000,vd)*60,half:raceTime(21097.5,vd)*60};
+}
+
+/* ---------- pain ---------- */
+S.foot=S.foot||{};
+function painBase(){const e=Object.entries(S.pain).sort();if(!e.length)return null;return med(e.slice(0,7).map(x=>x[1]))}
+function painFlag(){const b=painBase();if(b==null)return false;const t=parseISO(todayISO());return Object.entries(S.pain).filter(([d,v])=>(t-parseISO(d))/864e5<=7&&v>=b+2).length>=2}
+function footFlag(){const t=parseISO(todayISO());return Object.entries(S.foot).filter(([d,v])=>(t-parseISO(d))/864e5<=7&&v>=3).length>=2}
+
+/* ---------- load adjustment ---------- */
+const actual=w=>S.runs.filter(r=>wkOf(r.date)===w).reduce((a,r)=>a+r.mi,0);
+function targets(){
+  const cw=thisWeek(),out={},why={};
+  const logged=S.runs.some(r=>{const w=wkOf(r.date);return w>=cw-2&&w<cw});
+  if(!logged||cw<1)return {out,why,cw};
+  let ref=Math.max(actual(cw-1),cw>=2?actual(cw-2):0);
+  for(const w of [cw,cw+1]){
+    if(w>24)break;
+    let t=W[w][0],r=[];
+    const cap=Math.max(ref*1.3,ref+3);
+    if(t>cap){t=cap;r.push("capped at +30% over 2 weeks")}
+    if(w===cw&&!DOWN.includes(cw-1)&&actual(cw-1)<0.75*W[cw-1][0]){t=Math.min(t,W[cw-1][0]);r.push("last week under 75% of plan, repeating its volume")}
+    if(painFlag()){t*=0.8;r.push("knee pain up 2+ on 2+ days: −20%, drop a set on leg day")}
+    if(footFlag()&&w===cw){const flat=actual(cw-1);if(flat>0&&t>flat){t=flat;r.push("first-step foot pain 3+ on 2+ mornings: holding mileage flat, no hills or speed this week")}}
+    t=Math.round(t*2)/2;if(t<W[w][0]){out[w]=t;why[w]=r}
+    ref=Math.max(ref,t);
   }
-  if(n===18) plan.Sun = {run:"Half marathon test (13.1)", test:true};
-  else if(n===22) plan.Sun = {run:`${lr} mi long, last 6 at MP`};
-  else plan.Sun = {run:`${lr} mi long${n>=13?", practice fueling":""}${n>=16&&n<=23?", finish on a controlled downhill":""}`};
-  let L = {...LIFT[ph]};
-  if(n===25) delete L.Wed;
-  if([4,8,15,21].includes(n)) for(const d in L) L[d] = L[d]+" (deload: −⅓ sets)";
-  for(const d in L){ plan[d] = plan[d]||{}; plan[d].lift = L[d]; }
+  return {out,why,cw};
+}
+
+/* ---------- plan ---------- */
+const r5=x=>Math.round(x*2)/2;
+function weekPlan(i,mi){
+  const [pm,plr,key,ph]=W[i],n=i+1,plan={};
+  if(n===26){plan.Mon={lift:"Light upper only"};plan.Tue={run:"4 mi: 2 easy + 2 at MP"};plan.Thu={run:"3 mi easy + 4 strides"};plan.Sat={run:"2 mi shakeout"};plan.Sun={run:"Race: 26.2 mi",test:true};return plan}
+  const lr=mi<pm?r5(plr*mi/pm):plr,rem=Math.max(0,mi-lr);
+  let split;if(n<=4)split={Tue:.5,Fri:.5};else if(n<=8)split={Tue:.3,Wed:.4,Sat:.3};else split={Tue:.2,Wed:.3,Fri:.2,Sat:.3};
+  const keyDay=n<=4?"Fri":"Wed";
+  for(const d in split){const m=r5(rem*split[d]);plan[d]=d===keyDay?{run:`${m} mi incl. ${key}`,test:/time trial/.test(key)}:{run:`${m} mi easy${d==="Tue"?" + strides":""}`}}
+  if(n===18)plan.Sun={run:"Half marathon test (13.1)",test:true};
+  else if(n===22)plan.Sun={run:`${lr} mi long, last 6 at MP`};
+  else plan.Sun={run:`${lr} mi long${n>=13?", practice fueling":""}${n>=16&&n<=23?", controlled downhill finish if tendon is calm":""}`};
+  const L={...LIFT[ph]};if(n===25)delete L.Wed;
+  if(n>=16&&n<=21)delete L.Fri;
+  if(DOWN.includes(i))for(const d in L)L[d]+=" (deload: −⅓ sets)";
+  if(painFlag()&&L.Wed)L.Wed+=" · knee flag: −1 set";
+  if(footFlag()&&L.Mon)L.Mon+=" · foot flag: heel raises every 2nd day, lighter";
+  for(const d in L){plan[d]=plan[d]||{};plan[d].lift=L[d]}
   return plan;
 }
-function fmt(d){return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})}
-function store(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
 
-let cur = 0;
+/* ---------- render ---------- */
+let cur=0,T={out:{},why:{}},F,P;
+function renderStatus(){
+  F=fitness();P=paces(F.vd);T=targets();
+  document.getElementById("pacesrc").textContent=F.src+" "+F.efNote;
+  const e=P.E.map(mmss);
+  document.getElementById("pacetab").innerHTML=`<tr><th>Type</th><th>Pace /mi</th><th>Feel</th></tr>
+  <tr><td>Easy</td><td>${e[0]}–${e[1]}</td><td>HR under ${HREASY}. Full sentences. About 80% of all miles.</td></tr>
+  <tr><td>Marathon pace (MP)</td><td>${mmss(P.MP)}</td><td>Pace, not HR. Lands near 160–178.</td></tr>
+  <tr><td>Threshold (T)</td><td>${mmss(P.T)}</td><td>Comfortably hard, HR ~178–188 (LTHR ${LTHR})</td></tr>
+  <tr><td>Hill repeats</td><td>By effort</td><td>Hard but repeatable</td></tr>
+  <tr><td>Strides</td><td>Fast, relaxed</td><td>6 × 20 s, full recovery</td></tr>`;
+  document.getElementById("equiv").textContent=`VDOT ${F.vd.toFixed(1)}. Equivalents: 5K ${mmss(P.k5)}, 10K ${mmss(P.k10)}, half ${mmss(P.half)}, marathon ${mmss(P.mt)} (${mmss(P.MPeq)}/mi). MP above is set 2% slower than the equivalent for a first marathon on a hilly course (speculative margin).`;
+  const cw=thisWeek(),a=actual(cw-1),pb=painBase(),tw=T.out[cw]??W[cw][0];
+  let h=`<div class="small">Marathon pace at current fitness</div><div class="big">${mmss(P.MP)}/mi</div><div class="small">≈ ${mmss(P.MP*26.2188)} finish. Goal: 7:30. Early tests will read slower; that gap is what the build closes.</div><hr style="border:0;border-top:1px solid var(--line)">`;
+  h+=`<p style="margin:.3rem 0">Last week: <b>${a.toFixed(1)} mi</b> of ${cw>0?W[cw-1][0]:"–"} planned.</p>`;
+  h+=`<p style="margin:.3rem 0">This week (wk ${cw+1}): <b>${tw} mi</b>${T.out[cw]!=null?` <span class="flag">adjusted from ${W[cw][0]}</span>`:""}.</p>`;
+  if(T.why[cw])h+=`<p class="small">${T.why[cw].join("; ")}</p>`;
+  if(T.out[cw+1]!=null)h+=`<p style="margin:.3rem 0">Next week: <b>${T.out[cw+1]} mi</b> <span class="flag">adjusted from ${W[cw+1][0]}</span></p>`;
+  h+=`<p style="margin:.3rem 0">Knee baseline: ${pb==null?"log a few mornings":pb+"/10"}${painFlag()?' <span class="flag">flag: knee pain elevated</span>':""}</p>`;
+  h+=`<p style="margin:.3rem 0">Foot: ${Object.keys(S.foot).length?"logged":"log first-step pain"}${footFlag()?' <span class="flag">flag: plantar fascia grumbling</span>':""}</p>`;
+  const ez=S.runs.filter(r=>typeOf(r)==="easy"&&r.hr&&wkOf(r.date)>=cw-3);
+  if(ez.length){const over=ez.filter(r=>r.hr>HREASY).length;h+=`<p style="margin:.3rem 0">Easy runs under ${HREASY} bpm (last 4 weeks): <b>${ez.length-over}/${ez.length}</b>${over?' <span class="flag">too many over cap</span>':""}</p>`}
+  if(F.fatigue)h+=`<p class="flag">Easy-run efficiency dropped 3%+ in the last 10 days. Consider taking the next down week early.</p>`;
+  if(!S.runs.length)h+=`<p class="small">No runs logged yet. Upload a Garmin CSV to start.</p>`;
+  document.getElementById("status").innerHTML=h;
+  const pb2=Object.keys(S.pain).length,fb=Object.keys(S.foot).length;document.getElementById("pinfo").textContent=(pb2||fb)?`${pb2} knee and ${fb} foot check${fb==1?"":"s"} logged. Knee baseline = median of your first 7.`:"";
+  renderRuns();drawProfile();
+}
+function renderRuns(){
+  const t=document.getElementById("runs"),rs=[...S.runs].reverse().slice(0,25);
+  if(!rs.length){t.innerHTML="";return}
+  t.innerHTML=`<tr><th>Date</th><th>Mi</th><th>Time</th><th>Pace</th><th>HR</th><th>Type</th><th></th></tr>`+rs.map(r=>`<tr><td>${fmt(parseISO(r.date))}</td><td>${r.mi.toFixed(2)}</td><td>${mmss(r.sec)}</td><td>${mmss(r.sec/r.mi)}</td><td>${r.hr??"–"}</td><td><select data-id="${r.id}">${["auto","easy","key","long","test"].map(o=>`<option value="${o}" ${r.type===o?"selected":""}>${o==="auto"?"auto ("+typeOf({...r,type:"auto"})+")":o}</option>`).join("")}</select></td><td><button class="btn" style="padding:2px 8px;background:var(--line);color:var(--ink)" data-del="${r.id}" aria-label="Delete run">×</button></td></tr>`).join("");
+  t.querySelectorAll("select").forEach(s=>s.onchange=()=>{S.runs.find(r=>r.id===s.dataset.id).type=s.value;save();renderStatus();render()});
+  t.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S.runs=S.runs.filter(r=>r.id!==b.dataset.del);save();renderStatus();render()});
+}
 function render(){
-  const [mi,lr,key,ph] = W[cur];
-  const s = new Date(START); s.setDate(s.getDate()+cur*7);
-  document.getElementById("wt").textContent = `Week ${cur+1} of 26, ${fmt(s)}`;
-  const phName = {base:"Base",build:"Build",peak:"Peak",taper:cur===25?"Race week":"Taper"}[ph];
-  document.getElementById("wm").textContent = `${phName}. ${cur===25?"9 mi + race":mi+" mi"}. Long run ${lr} mi. Key: ${key}.`;
-  const plan = weekPlan(cur), box = document.getElementById("days");
-  box.innerHTML = "";
+  const [pm,lr,key,ph]=W[cur],mi=T.out[cur]??pm;
+  const s=new Date(START);s.setDate(s.getDate()+cur*7);
+  document.getElementById("wt").textContent=`Week ${cur+1} of 26, ${fmt(s)}`;
+  const phName={base:"Base",build:"Build",peak:"Peak",taper:cur===25?"Race week":"Taper"}[ph];
+  const act=actual(cur);
+  document.getElementById("wm").textContent=`${phName}. ${cur===25?"9 mi + race":mi+" mi"+(mi!==pm?` (adjusted from ${pm})`:"")}. Key: ${key}.${act?` Logged: ${act.toFixed(1)} mi.`:""}`;
+  const plan=weekPlan(cur,mi),box=document.getElementById("days");box.innerHTML="";
   DAYS.forEach((d,j)=>{
-    const dt = new Date(s); dt.setDate(dt.getDate()+j);
-    const p = plan[d]||{};
-    const el = document.createElement("div"); el.className="day";
-    let h = `<div class="dn">${d} <span class="dd">${fmt(dt)}</span></div>`;
-    if(p.run) h += `<div class="blk ${p.test?"test":"run"}"><b>Run</b>${p.run}</div>`;
-    if(p.lift) h += `<div class="blk lift"><b>Lift</b>${p.lift}</div>`;
-    if(!p.run && !p.lift) h += `<div class="rest">Rest. Mobility or a walk.</div>`;
-    const id = `oak-w${cur+1}-${d}`;
-    if(p.run||p.lift) h += `<label class="done"><input type="checkbox" data-k="${id}" ${store(id)==="1"?"checked":""}> Done</label>`;
-    el.innerHTML = h; box.appendChild(el);
+    const dt=new Date(s);dt.setDate(dt.getDate()+j);const ds=iso(dt),p=plan[d]||{};
+    const logs=S.runs.filter(r=>r.date===ds);
+    const el=document.createElement("div");el.className="day";
+    let h=`<div class="dn">${d} <span class="dd">${fmt(dt)}</span></div>`;
+    if(p.run)h+=`<div class="blk ${p.test?"test":"run"}"><b>Run</b>${p.run}</div>`;
+    if(p.lift)h+=`<div class="blk lift"><b>Lift</b>${p.lift}</div>`;
+    if(!p.run&&!p.lift)h+=`<div class="rest">Rest. Mobility or a walk.</div>`;
+    logs.forEach(r=>{const hot=r.hr&&r.hr>HREASY&&typeOf(r)==="easy";h+=`<div class="logged">✓ ${r.mi.toFixed(1)} mi · ${mmss(r.sec/r.mi)}/mi${r.hr?` · <span class="${hot?"flag":""}">${r.hr} bpm</span>`:""}${hot?" (easy run over cap)":""}</div>`});
+    const id=`w${cur+1}-${d}`;
+    if(p.run||p.lift)h+=`<label class="done"><input type="checkbox" data-k="${id}" ${S.done[id]||logs.length?"checked":""}> Done</label>`;
+    el.innerHTML=h;box.appendChild(el);
   });
-  box.querySelectorAll("input[type=checkbox]").forEach(c=>c.addEventListener("change",()=>store(c.dataset.k,c.checked?"1":"0")));
+  box.querySelectorAll("input[type=checkbox]").forEach(c=>c.addEventListener("change",()=>{S.done[c.dataset.k]=c.checked;save()}));
   document.querySelectorAll("#profile .pt").forEach((p,k)=>p.setAttribute("r",k===cur?7:3.5));
-  store("oak-week",String(cur));
+  LS.set("oak-week",cur);
+}
+function drawProfile(){
+  const svg=document.getElementById("profile"),NS="http://www.w3.org/2000/svg";svg.innerHTML="";
+  const x0=48,x1=985,y0=210,y1=20,max=45,X=i=>x0+(x1-x0)*i/25,Y=v=>y0-(y0-y1)*Math.min(v,max)/max;
+  const vals=W.map((w,i)=>i===25?w[0]+26.2:(T.out[i]??w[0]));
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e};
+  [0,10,20,30,40].forEach(v=>{mk("line",{x1:x0,x2:x1,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1});mk("text",{x:x0-8,y:Y(v)+4,"text-anchor":"end","font-size":12,fill:"var(--muted)"}).textContent=v});
+  mk("text",{x:12,y:115,"font-size":12,fill:"var(--muted)",transform:"rotate(-90 12 115)","text-anchor":"middle"}).textContent="Miles / week";
+  for(let i=0;i<25;i++)mk("path",{d:`M${X(i)},${y0} L${X(i)},${Y(vals[i])} L${X(i+1)},${Y(vals[i+1])} L${X(i+1)},${y0} Z`,fill:PHASE_COLOR[W[i][3]],opacity:.85});
+  mk("polyline",{points:vals.map((v,i)=>`${X(i)},${Y(v)}`).join(" "),fill:"none",stroke:"var(--ink)","stroke-width":2});
+  const cw=thisWeek();
+  for(let i=0;i<=cw;i++){const a=actual(i);if(a>0)mk("rect",{x:X(i)-5,y:Y(a)-5,width:10,height:10,fill:"var(--amber)",stroke:"var(--panel)","stroke-width":1.5,transform:`rotate(45 ${X(i)} ${Y(a)})`})}
+  vals.forEach((v,i)=>{
+    const c=mk("circle",{class:"pt",cx:X(i),cy:Y(v),r:i===cur?7:3.5,fill:"var(--panel)",stroke:"var(--ink)","stroke-width":2,tabindex:0,role:"button","aria-label":`Week ${i+1}, ${v} miles planned, ${actual(i).toFixed(1)} logged`});
+    c.style.cursor="pointer";const go=()=>{cur=i;render();if(window.showTab)showTab("weeks");document.getElementById("week").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})};
+    c.addEventListener("click",go);c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+    if(i%2===0||i===25)mk("text",{x:X(i),y:y0+18,"text-anchor":"middle","font-size":11,fill:"var(--muted)"}).textContent=i+1;
+  });
+  mk("text",{x:X(22),y:Y(vals[22])-12,"text-anchor":"middle","font-size":13,"font-weight":600,fill:"var(--ink)"}).textContent=`${vals[22]} mi peak`;
+  mk("text",{x:X(25)-4,y:Y(35.2)-12,"text-anchor":"end","font-size":13,"font-weight":600,fill:"var(--ink)"}).textContent="Race";
+  mk("text",{x:(x0+x1)/2,y:244,"text-anchor":"middle","font-size":12,fill:"var(--muted)"}).textContent="Week  (◆ = logged)";
 }
 
-// profile chart
-(function(){
-  const svg = document.getElementById("profile"), NS="http://www.w3.org/2000/svg";
-  const x0=48,x1=985,y0=210,y1=20,max=45;
-  const X=i=>x0+(x1-x0)*i/25, Y=v=>y0-(y0-y1)*v/max;
-  const vals = W.map((w,i)=>i===25?w[0]+26.2:w[0]);
-  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e};
-  [0,10,20,30,40].forEach(v=>{mk("line",{x1:x0,x2:x1,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-width":1});const t=mk("text",{x:x0-8,y:Y(v)+4,"text-anchor":"end","font-size":12,fill:"var(--muted)"});t.textContent=v;});
-  const yl=mk("text",{x:12,y:115,"font-size":12,fill:"var(--muted)",transform:"rotate(-90 12 115)","text-anchor":"middle"});yl.textContent="Miles / week";
-  for(let i=0;i<25;i++){
-    const ph=W[i][3];
-    mk("path",{d:`M${X(i)},${y0} L${X(i)},${Y(vals[i])} L${X(i+1)},${Y(vals[i+1])} L${X(i+1)},${y0} Z`,fill:PHASE_COLOR[ph],opacity:.85});
-  }
-  mk("polyline",{points:vals.map((v,i)=>`${X(i)},${Y(v)}`).join(" "),fill:"none",stroke:"var(--ink)","stroke-width":2});
-  vals.forEach((v,i)=>{
-    const c=mk("circle",{class:"pt",cx:X(i),cy:Y(v),r:3.5,fill:"var(--panel)",stroke:"var(--ink)","stroke-width":2,tabindex:0,role:"button","aria-label":`Week ${i+1}, ${v} miles`});
-    c.style.cursor="pointer";
-    const go=()=>{cur=i;render();document.getElementById("week").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})};
-    c.addEventListener("click",go);c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
-    if(i%2===0||i===25){const t=mk("text",{x:X(i),y:y0+18,"text-anchor":"middle","font-size":11,fill:"var(--muted)"});t.textContent=i+1;}
-  });
-  const pk=mk("text",{x:X(22),y:Y(42)-12,"text-anchor":"middle","font-size":13,"font-weight":600,fill:"var(--ink)"});pk.textContent="42 mi, 20 mi long run";
-  const rc=mk("text",{x:X(25)-4,y:Y(35.2)-12,"text-anchor":"end","font-size":13,"font-weight":600,fill:"var(--ink)"});rc.textContent="Race";
-  const xl=mk("text",{x:(x0+x1)/2,y:244,"text-anchor":"middle","font-size":12,fill:"var(--muted)"});xl.textContent="Week";
-})();
-
-function thisWeek(){const d=Math.floor((Date.now()-START)/(7*864e5));return Math.min(25,Math.max(0,d))}
+/* ---------- wiring ---------- */
+const msg=t=>document.getElementById("msg").textContent=t;
+document.getElementById("units").value=S.units;
+document.getElementById("units").onchange=e=>{S.units=e.target.value;save()};
+document.getElementById("csv").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{msg(importCSV(t));renderStatus();render();e.target.value=""})};
+document.getElementById("pdate").value=todayISO();
+document.getElementById("psave").onclick=()=>{const d=document.getElementById("pdate").value,v=parseInt(document.getElementById("pval").value,10),f=parseInt(document.getElementById("fval").value,10);
+ if(!d||(isNaN(v)&&isNaN(f))){msg("Add a date and at least one 0–10 score.");return}
+ let out=[];if(!isNaN(v)&&v>=0&&v<=10){S.pain[d]=v;out.push(`knee ${v}/10`)}if(!isNaN(f)&&f>=0&&f<=10){S.foot[d]=f;out.push(`foot ${f}/10`)}
+ save();msg(`Saved ${out.join(", ")} on ${fmt(parseISO(d))}.`);renderStatus();render()};
+document.getElementById("exp").onclick=()=>{
+  const cw=thisWeek();
+  const weeks=W.slice(0,cw+1).map((w,i)=>({week:i+1,planned:w[0],adjusted:T.out[i]??null,logged:+actual(i).toFixed(1)}));
+  const data={exported:new Date().toISOString(),currentWeek:cw+1,vdot:+F.vd.toFixed(2),mpTarget:mmss(P.MP),fitnessSource:F.src,efficiency:F.efNote,fatigueFlag:F.fatigue,painBaseline:painBase(),kneeFlag:painFlag(),footFlag:footFlag(),foot:S.foot,weeks,runs:S.runs,pain:S.pain};
+  const blob=new Blob([JSON.stringify(data,null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`oakland-checkin-wk${cw+1}.json`;document.body.appendChild(a);a.click();a.remove();
+  msg("Exported. Upload that file in your chat with Claude, or paste its contents.");
+};
+document.getElementById("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(Array.isArray(d.runs)){const have=new Set(S.runs.map(r=>r.id));d.runs.forEach(r=>{if(!have.has(r.id))S.runs.push(r)});Object.assign(S.pain,d.pain||{});Object.assign(S.foot,d.foot||{});S.runs.sort((a,b)=>a.date<b.date?-1:1);save();msg("Backup restored.");renderStatus();render()}else msg("That file isn't a plan export.")}catch(err){msg("Couldn't read that file.")}e.target.value=""})};
 document.getElementById("prev").onclick=()=>{cur=Math.max(0,cur-1);render()};
 document.getElementById("next").onclick=()=>{cur=Math.min(25,cur+1);render()};
 document.getElementById("today").onclick=()=>{cur=thisWeek();render()};
-const saved = parseInt(store("oak-week"),10);
-cur = Number.isFinite(saved) ? saved : thisWeek();
-render();
+const sv=LS.get("oak-week",null);cur=Number.isFinite(sv)?sv:thisWeek();
+renderStatus();render();
+
+/* ---------- tabs ---------- */
+function showTab(g){
+  document.querySelectorAll("section[data-tab]").forEach(x=>x.classList.toggle("on",x.dataset.tab===g));
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.go===g));
+  LS.set("oak-tab",g);
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.go));
+showTab(LS.get("oak-tab","weeks"));
 </script>
 </body>
 </html>
